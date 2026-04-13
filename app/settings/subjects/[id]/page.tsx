@@ -55,6 +55,12 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
+const ensureLessonArray = (lesson: number | number[]): number[] => {
+  if (Array.isArray(lesson)) return lesson;
+  if (typeof lesson === 'number') return [lesson];
+  return [];
+};
+
 export default function SubjectPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -62,7 +68,7 @@ export default function SubjectPage() {
   const { data, store } = useStore();
   const [typeRule, setTypeRule] = useState("weekly");
   const [date, setDate] = useState("");
-  const [lesson, setLesson] = useState("");
+  const [lesson, setLesson] = useState<Set<string>>(new Set());
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function SubjectPage() {
       if (aNonCustom.dayOfWeek !== bNonCustom.dayOfWeek) {
         return aNonCustom.dayOfWeek - bNonCustom.dayOfWeek;
       }
-      return aNonCustom.lesson - bNonCustom.lesson;
+      return (ensureLessonArray(aNonCustom.lesson)[0] ?? 0) - (ensureLessonArray(bNonCustom.lesson)[0] ?? 0);
     } else {
       // Оба кастомные - сортируем по date
       const aCustom = a as Extract<ScheduleRule, { date: string }>;
@@ -130,8 +136,10 @@ export default function SubjectPage() {
                                 <span className="font-medium text-xl">{DAYS.find(d => d.id === r.dayOfWeek)?.full}</span>
                                 <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
                             </div>
-                            <div>
-                              <Chip className="" size="lg">{r.lesson} пара</Chip>
+                            <div className="flex flex-wrap gap-2">
+                              {ensureLessonArray(r.lesson).sort((a, b) => a - b).map((l) => (
+                                <Chip key={l} size="lg">{l} пара</Chip>
+                              ))}
                             </div>
                         </div>
                     ) : (
@@ -144,8 +152,10 @@ export default function SubjectPage() {
                                 <span className="font-medium text-xl">{formatDate(r.date)}</span>
                                 <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
                             </div>
-                            <div>
-                              <Chip className="" size="lg">{r.lesson} пара</Chip>
+                            <div className="flex flex-wrap gap-2">
+                              {ensureLessonArray(r.lesson).map((l) => (
+                                <Chip key={l} size="lg">{l} пара</Chip>
+                              ))}
                             </div>
                         </div>
                     )}
@@ -190,10 +200,10 @@ export default function SubjectPage() {
                 {/* ПАРА */}
                 <ToggleButtonGroup
                   className="w-full"
-                  selectedKeys={lesson ? new Set([lesson]) : new Set()}
+                  selectionMode="multiple"
+                  selectedKeys={lesson}
                   onSelectionChange={(keys) => {
-                    const value = Array.from(keys)[0];
-                    setLesson(value ? String(value) : "");
+                    setLesson(new Set(Array.from(keys).map(String)));
                   }}
                 >
                   {PARS.map((para) => (
@@ -207,17 +217,17 @@ export default function SubjectPage() {
                 {/* КНОПКА */}
                 <Button
                   className="w-full"
-                  isDisabled={!date || !lesson}
+                  isDisabled={!date || lesson.size === 0}
                   onPress={() => {
                     store.addRule(subject.id, {
                       id: crypto.randomUUID(),
                       type: typeRule as "Еженедельно" | "Нечёт" | "Чёт",
                       dayOfWeek: Number(date),
-                      lesson: Number(lesson),
+                      lesson: Array.from(lesson).map(Number),
                     });
 
                     setDate("");
-                    setLesson("");
+                    setLesson(new Set());
                   }}
                 >
                   Добавить
@@ -239,10 +249,10 @@ export default function SubjectPage() {
                     {/* ПАРА */}
                     <ToggleButtonGroup
                       className="w-full"
-                      selectedKeys={lesson ? new Set([lesson]) : new Set()}
+                      selectionMode="multiple"
+                      selectedKeys={lesson}
                       onSelectionChange={(keys) => {
-                        const value = Array.from(keys)[0];
-                        setLesson(value ? String(value) : "");
+                        setLesson(new Set(Array.from(keys).map(String)));
                       }}
                     >
                       {PARS.map((para) => (
@@ -257,17 +267,17 @@ export default function SubjectPage() {
                 {/* КНОПКА */}
                 <Button
                   className="w-full"
-                  isDisabled={!date || !lesson}
+                  isDisabled={!date || lesson.size === 0}
                   onPress={() => {
                     store.addRule(subject.id, {
                       id: crypto.randomUUID(),
                       type: typeRule as "Кастом",
                       date: String(date),
-                      lesson: Number(lesson),
+                      lesson: Array.from(lesson).map(Number),
                     });
 
                     setDate("");
-                    setLesson("");
+                    setLesson(new Set());
                   }}
                 >
                   Добавить

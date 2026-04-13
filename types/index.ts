@@ -15,19 +15,19 @@ export type ScheduleRule =
       id: string;
       type: "Еженедельно";
       dayOfWeek: number;
-      lesson: number;
+      lesson: number[];
     }
   | {
       id: string;
       type: "Нечёт" | "Чёт";
       dayOfWeek: number;
-      lesson: number;
+      lesson: number[];
     }
   | {
       id: string;
       type: "Кастом";
       date: string;
-      lesson: number;
+      lesson: number[];
     };
 
 export type Task =
