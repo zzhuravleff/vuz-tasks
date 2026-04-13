@@ -199,6 +199,13 @@ function completeTask(id: string) {
   }));
 }
 
+
+function clearAllData() {
+  localStorage.removeItem(STORAGE_KEY);
+  state = defaultData;
+  emit();
+}
+
 /* =========================================================
    📦 EXPORT
 ========================================================= */
@@ -222,4 +229,6 @@ export const store = {
   updateTask,
   deleteTask,
   completeTask,
+  
+  clearAllData,
 };

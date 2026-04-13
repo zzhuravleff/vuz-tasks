@@ -117,6 +117,12 @@ export default function SettingsPage() {
             ))}
             </ListBox>
         </div>
+
+        <Button variant="danger-soft" className="w-full" onClick={() => {
+            if (confirm("Вы уверены, что хотите сбросить все данные? Это действие необратимо.")) {
+                store.clearAllData();
+            }
+        }}>Сбросить все данные</Button>
         
       
     </div>
