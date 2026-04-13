@@ -47,7 +47,7 @@ export default function TasksList() {
     return (
         <div className="flex flex-col gap-2">
             {sortedTasks.map(task => (
-                <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col">
+                <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col" onClick={() => store.deleteTask(task.id)}>
                     <div className="flex justify-between">
                         <span className="font-medium text-xl line-clamp-2">
                             {task.type === "Расписание" ? task.subjectName : task.title}
