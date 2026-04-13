@@ -136,10 +136,10 @@ export default function SubjectPage() {
             
             const now = new Date();
             
-            // Получаем ID уже занятых пар (из активных задач по расписанию)
+            // Получаем ID уже занятых пар (только из задач типа "Расписание")
             const occupiedLessonIds = new Set(
                 data.tasks
-                    .filter(task => 
+                    .filter((task): task is Extract<Task, { type: "Расписание" }> => 
                         task.type === "Расписание" && 
                         task.subjectId === selectedSubjectId && 
                         task.status === "active"
