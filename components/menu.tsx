@@ -39,10 +39,6 @@ export default function Menu() {
           );
         })}
 
-        <div id="addTask" className="">
-            <Button isIconOnly variant="primary"><Plus /></Button>
-        </div>
-
       </div>
     </div>
   );
