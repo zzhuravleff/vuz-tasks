@@ -3,8 +3,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ВУЗ Tasks - Отслеживайте свои учебные задачи эффективно',
-    short_name: 'ВУЗ Tasks',
+    name: 'ВУЗадачи - Отслеживайте свои учебные задачи эффективно',
+    short_name: 'ВУЗадачи',
     description: 'Приложение для управления учебными задачами, интегрированное с твоим расписанием. Создавайте задачи на основе расписания и кастомные задачи, устанавливайте сроки и получайте уведомления.',
     start_url: '/',
     display: 'standalone',
