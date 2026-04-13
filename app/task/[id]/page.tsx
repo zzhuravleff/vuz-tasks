@@ -1,10 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { Button, Description, IconChevronLeft, Input, Label, ListBox, Select, TextArea } from "@heroui/react";
+import { Button, IconChevronLeft, Input, Label, ListBox, Select, TextArea } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
 import { useEffect, useMemo, useState } from "react";
-import { ScheduleRule } from "@/types";
+import { ScheduleRule, Task } from "@/types";
 
 const LESSON_TIMES: Record<number, string> = {
     1: "9:00",
