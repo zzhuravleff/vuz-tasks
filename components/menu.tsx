@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { House, ChartAreaStacked, Gear, Plus } from "@gravity-ui/icons";
 import { Button } from "@heroui/react";
+import AddTask from "./addTask";
 
 const items = [
   { label: "Главная", icon: House, path: "/" },
@@ -38,6 +39,8 @@ export default function Menu() {
             </button>
           );
         })}
+
+        <AddTask />
 
       </div>
     </div>

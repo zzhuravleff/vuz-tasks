@@ -26,7 +26,6 @@ export default function RootLayout({
     >
       <body className="flex flex-col items-center min-h-full bg-[#f5f5f5]">
         <main className="w-full p-4 mb-24">{children}</main>
-        <AddTask />
         <Menu />
       </body>
     </html>
