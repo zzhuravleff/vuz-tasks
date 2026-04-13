@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { House, ChartAreaStacked, Gear } from "@gravity-ui/icons";
+import { House, ChartAreaStacked, Gear, Plus } from "@gravity-ui/icons";
+import { Button } from "@heroui/react";
 
 const items = [
   { label: "Главная", icon: House, path: "/" },
@@ -29,14 +30,19 @@ export default function Menu() {
                 ${active ? "text-accent" : "text-black/60 hover:text-black"}`}
             >
               {active && (
-                <span className="absolute inset-0 bg-white/15 rounded-xl" />
+                <span className="absolute inset-0" />
               )}
 
-              <Icon className="relative z-10" />
+              <Icon className="relative z-10 size-5" />
               <span className="text-[12px] relative z-10">{item.label}</span>
             </button>
           );
         })}
+
+        <div id="addTask" className="">
+            <Button isIconOnly variant="primary"><Plus /></Button>
+        </div>
+
       </div>
     </div>
   );
