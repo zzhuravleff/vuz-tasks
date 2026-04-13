@@ -33,7 +33,7 @@ export type ScheduleRule =
 export type Task =
   | {
       id: string;
-      type: "schedule";
+      type: "Расписание";
 
       subjectId: string;
 
@@ -47,7 +47,7 @@ export type Task =
     }
   | {
       id: string;
-      type: "custom";
+      type: "Кастомная";
 
       title: string;
       description?: string;

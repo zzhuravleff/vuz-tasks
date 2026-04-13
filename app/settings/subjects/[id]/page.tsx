@@ -66,7 +66,7 @@ export default function SubjectPage() {
   const router = useRouter();
 
   const { data, store } = useStore();
-  const [typeRule, setTypeRule] = useState("weekly");
+  const [typeRule, setTypeRule] = useState("Еженедельно");
   const [date, setDate] = useState("");
   const [lesson, setLesson] = useState<Set<string>>(new Set());
   const [isMounted, setIsMounted] = useState(false);

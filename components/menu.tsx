@@ -1,8 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { House, ChartAreaStacked, Gear, Plus } from "@gravity-ui/icons";
-import { Button } from "@heroui/react";
+import { House, ChartAreaStacked, Gear } from "@gravity-ui/icons";
 import AddTask from "./addTask";
 
 const items = [
@@ -16,7 +15,7 @@ export default function Menu() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 z-50 flex justify-center w-full bg-white/20 backdrop-blur-lg border-t border-gray-200/50 py-2">
+    <div className={`fixed bottom-0 z-50 flex justify-center w-full bg-white/20 backdrop-blur-lg border-t border-gray-200/50 py-2 ${(pathname === "/add" || pathname.startsWith("/settings/subject")) ? "hidden" : ""}`}>
       <div className="flex items-center gap-2">
         
         {items.map((item) => {
