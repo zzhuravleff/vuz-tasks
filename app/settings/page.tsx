@@ -99,12 +99,12 @@ export default function SettingsPage() {
             {data.subjects.sort((a, b) => a.name.localeCompare(b.name)).map((s, i) => (
                     <ListBox.Item key={s.id} id={s.id} className="flex justify-between items-center">
                         <div className="flex gap-2 items-center">
-                            <Avatar variant="soft" color={colors[i % colors.length]}>
+                            <Avatar variant="soft" color={colors[i % colors.length]} className="shrink-0">
                                 <Avatar.Fallback className="uppercase">{s.name[0]}{s.name.split(" ").length > 1 ? s.name.split(" ")[1][0] : ""}</Avatar.Fallback>
                             </Avatar>
                             <span>{s.name}</span>
                         </div>
-                        <Button isIconOnly variant="danger-soft"
+                        <Button isIconOnly variant="danger-soft" className="shrink-0"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (confirm("Вы уверены, что хотите удалить эту дисциплину?")) {
