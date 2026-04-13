@@ -194,15 +194,17 @@ export default function SubjectPage() {
                 Новая задача
             </h1>
 
-            <div className={`flex flex-col gap-2 ${typeTask === "Расписание" ? "hidden" : ""}`}>
-                <Label isRequired>Название задачи</Label>
-                <Input 
-                    variant="secondary" 
-                    placeholder="Название задачи"
-                    value={taskTitle}
-                    onChange={(e) => setTaskTitle(e.target.value)}
-                />
-            </div>
+            {typeTask === "Кастомная" && (
+                <div className="flex flex-col gap-2">
+                    <Label isRequired>Название задачи</Label>
+                    <Input 
+                        variant="secondary"
+                        placeholder="Название задачи"
+                        value={taskTitle}
+                        onChange={(e) => setTaskTitle(e.target.value)}
+                    />
+                </div>
+            )}
 
             <div className="flex flex-col gap-2">
                 <Label>Описание задачи</Label>

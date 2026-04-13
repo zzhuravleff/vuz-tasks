@@ -2,20 +2,24 @@
 
 import { useStore } from "@/hooks/useStore";
 import { Chip } from "@heroui/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function TasksList() {
     const { data, store } = useStore();
     const [isMounted, setIsMounted] = useState(false);
+
+    const router = useRouter();
     
     useEffect(() => {
       setIsMounted(true);
     }, []);
 
     if (!isMounted || !data) return null;
+
+    const activedTasks = data.tasks.filter((t) => (t.status === "active" && new Date(t.deadline) > new Date()));
     
-    const sortedTasks = [...data.tasks]
-        .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    const sortedTasks = activedTasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     
     // Функция для правильного форматирования даты с учётом часового пояса
     const formatDatePars = (dateString: string) => {
@@ -42,12 +46,21 @@ export default function TasksList() {
         return `${day} ${month} ${year} ${hours}:${minutes}`;
     };
 
+    if (sortedTasks.length === 0) return (
+        <div className="w-full flex items-center justify-center text-center mt-64">
+                    <span className="font-medium text-xl">
+                        Нет активных задач...
+                    </span>
+        </div>
+    );
+
     
     
     return (
         <div className="flex flex-col gap-2">
             {sortedTasks.map(task => (
-                <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col" onClick={() => store.deleteTask(task.id)}>
+                <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col" onClick={() => {router.push(`/task/${task.id}`)}}>
+                    <div className="text-danger">{task.status}</div>
                     <div className="flex justify-between">
                         <span className="font-medium text-xl line-clamp-2">
                             {task.type === "Расписание" ? task.subjectName : task.title}
