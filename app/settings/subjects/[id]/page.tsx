@@ -1,32 +1,276 @@
-// "use client";
+"use client";
 
-// import { useParams, useRouter } from "next/navigation";
-// import { useAppData } from "@/hooks/useAppData";
-// import { Button, IconChevronLeft } from "@heroui/react";
+import { useParams, useRouter } from "next/navigation";
+import { Button, Chip, IconChevronLeft, Input, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
+import { useStore } from "@/hooks/useStore";
+import { useState } from "react";
+import { ScheduleRule } from "@/types";
 
-// export default function DisciplinePage() {
-//   const { id } = useParams();
-//   const router = useRouter();
-//   const { data, update } = useAppData();
+const TAB_ITEMS = [
+    { label: "Еженедельно" },
+    { label: "Нечёт" },
+    { label: "Чёт" },
+    { label: "Кастом" },
+  ] as const;
 
-//   if (!data) return null;
+const DAYS = [
+    { id: 1, short: "Пн", full: "Понедельник" },
+    { id: 2, short: "Вт", full: "Вторник" },
+    { id: 3, short: "Ср", full: "Среда" },
+    { id: 4, short: "Чт", full: "Четверг" },
+    { id: 5, short: "Пт", full: "Пятница" },
+    { id: 6, short: "Сб", full: "Суббота" },
+  ];
 
-//   const subject = data.subjects.find((s) => s.id === id);
-//   if (!subject) return <div>Discipline not found</div>;
+const PARS = [
+    {id: 1, time: "9:00"},
+    {id: 2, time: "10:30"},
+    {id: 3, time: "12:40"},
+    {id: 4, time: "14:20"},
+    {id: 5, time: "16:20"},
+    {id: 6, time: "18:00"},
+];
 
-//   return (
-//     <div className="flex flex-col gap-4 w-full">
-//         <Button variant="tertiary" onPress={() => router.back()}>
-//             <IconChevronLeft className="size-4" />
-//             Назад
-//         </Button>
+const getColorByType = (type: string) => {
+  switch(type) {
+    case "Еженедельно":
+      return "accent";
+    case "Нечёт":
+      return "success";
+    case "Чёт":
+      return "warning";
+    case "Кастом":
+      return "danger";
+    default:
+      return "default";
+  }
+};
 
-//         <h1 className="text-2xl font-medium text-center">
-//             {subject.name}
-//         </h1>
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('ru-RU', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric' 
+  }).format(date);
+};
 
-//         {/* список */}
+export default function SubjectPage() {
+  const { id } = useParams();
+  const router = useRouter();
 
-//     </div>
-//   );
-// }
+  const { data, store } = useStore();
+  const [typeRule, setTypeRule] = useState("weekly");
+  const [date, setDate] = useState("");
+  const [lesson, setLesson] = useState("");
+
+  if (!data) return null;
+
+  const subject = data.subjects.find((s) => s.id === id);
+  if (!subject) return <div>Discipline not found</div>;
+
+  // Сортировка: сначала по дням недели и парам, потом кастомные по датам
+  const sortedRules = [...subject.rules].sort((a, b) => {
+  const aIsCustom = a.type === "Кастом";
+  const bIsCustom = b.type === "Кастом";
+  
+  if (aIsCustom === bIsCustom) {
+    if (!aIsCustom) {
+      // Оба не кастомные - сортируем по dayOfWeek, потом по lesson
+      const aNonCustom = a as Extract<ScheduleRule, { dayOfWeek: number }>;
+      const bNonCustom = b as Extract<ScheduleRule, { dayOfWeek: number }>;
+      
+      if (aNonCustom.dayOfWeek !== bNonCustom.dayOfWeek) {
+        return aNonCustom.dayOfWeek - bNonCustom.dayOfWeek;
+      }
+      return aNonCustom.lesson - bNonCustom.lesson;
+    } else {
+      // Оба кастомные - сортируем по date
+      const aCustom = a as Extract<ScheduleRule, { date: string }>;
+      const bCustom = b as Extract<ScheduleRule, { date: string }>;
+      return aCustom.date.localeCompare(bCustom.date);
+    }
+  }
+  // Один кастомный, другой нет - некастомный идёт первым
+  return aIsCustom ? 1 : -1;
+});
+
+  return (
+    <div className="flex flex-col gap-4 w-full">
+        <Button variant="tertiary" onPress={() => router.back()}>
+            <IconChevronLeft className="size-4" />
+            Назад
+        </Button>
+
+        <h1 className="text-2xl font-medium text-center">
+            {subject.name}
+        </h1>
+
+        {/* список */}
+        <div className="flex flex-col gap-2">
+            {sortedRules.map((r) => (
+                <div key={r.id} className="flex items-center gap-2">
+                    {r.type != "Кастом" ? (
+                        <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full cursor-pointer" onClick={() => {
+                          if (confirm("Вы уверены, что хотите удалить эту пару?")) {
+                            store.deleteRule(subject.id, r.id);
+                          }
+                        }}>
+                            <div className="flex justify-between items-center gap-2">
+                                <span className="font-medium text-xl">{DAYS.find(d => d.id === r.dayOfWeek)?.full}</span>
+                                <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
+                            </div>
+                            <div>
+                              <Chip className="" size="lg">{r.lesson} пара</Chip>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full cursor-pointer" onClick={() => {
+                          if (confirm("Вы уверены, что хотите удалить эту пару?")) {
+                            store.deleteRule(subject.id, r.id);
+                          }
+                        }}>
+                            <div className="flex justify-between items-center gap-2">
+                                <span className="font-medium text-xl">{formatDate(r.date)}</span>
+                                <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
+                            </div>
+                            <div>
+                              <Chip className="" size="lg">{r.lesson} пара</Chip>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+
+        {/* добавление пары */}
+        <div className="flex flex-col gap-2 bg-white p-3 rounded-3xl">
+            <Tabs onSelectionChange={(t) => setTypeRule(t as ScheduleRule["type"])}>
+                <Tabs.ListContainer>
+                    <Tabs.List>
+                      {TAB_ITEMS.map((tab) => (
+                        <Tabs.Tab key={tab.label} id={tab.label}>
+                          {tab.label}
+                          <Tabs.Indicator />
+                        </Tabs.Tab>
+                      ))}
+                    </Tabs.List>
+                </Tabs.ListContainer>
+            </Tabs>
+
+            {typeRule !== "Кастом" ? (
+              <>
+                {/* ДЕНЬ */}
+                <ToggleButtonGroup
+                  className="w-full"
+                  selectedKeys={date ? new Set([date]) : new Set()}
+                  onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0];
+                    setDate(value ? String(value) : "");
+                  }}
+                >
+                  {DAYS.map((day) => (
+                    <ToggleButton key={day.id} id={String(day.id)} className="flex-1">
+                      {day.id !== 1 && <ToggleButtonGroupSeparator />}
+                      {day.short}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+
+                {/* ПАРА */}
+                <ToggleButtonGroup
+                  className="w-full"
+                  selectedKeys={lesson ? new Set([lesson]) : new Set()}
+                  onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0];
+                    setLesson(value ? String(value) : "");
+                  }}
+                >
+                  {PARS.map((para) => (
+                    <ToggleButton key={para.id} id={String(para.id)} className="flex-1">
+                      {para.id !== 1 && <ToggleButtonGroupSeparator />}
+                      {para.id}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+
+                {/* КНОПКА */}
+                <Button
+                  className="w-full"
+                  isDisabled={!date || !lesson}
+                  onPress={() => {
+                    store.addRule(subject.id, {
+                      id: crypto.randomUUID(),
+                      type: typeRule as "Еженедельно" | "Нечёт" | "Чёт",
+                      dayOfWeek: Number(date),
+                      lesson: Number(lesson),
+                    });
+
+                    setDate("");
+                    setLesson("");
+                  }}
+                >
+                  Добавить
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        variant="secondary"
+                    />
+                    {/* ПАРА */}
+                    <ToggleButtonGroup
+                      className="w-full"
+                      selectedKeys={lesson ? new Set([lesson]) : new Set()}
+                      onSelectionChange={(keys) => {
+                        const value = Array.from(keys)[0];
+                        setLesson(value ? String(value) : "");
+                      }}
+                    >
+                      {PARS.map((para) => (
+                        <ToggleButton key={para.id} id={String(para.id)} className="flex-1">
+                          {para.id !== 1 && <ToggleButtonGroupSeparator />}
+                          {para.id}
+                        </ToggleButton>
+                      ))}
+                    </ToggleButtonGroup>
+                    </div>
+
+                {/* КНОПКА */}
+                <Button
+                  className="w-full"
+                  isDisabled={!date || !lesson}
+                  onPress={() => {
+                    store.addRule(subject.id, {
+                      id: crypto.randomUUID(),
+                      type: typeRule as "Кастом",
+                      date: String(date),
+                      lesson: Number(lesson),
+                    });
+
+                    setDate("");
+                    setLesson("");
+                  }}
+                >
+                  Добавить
+                </Button>
+              </>
+            )}
+        </div>
+
+        <Button variant="danger-soft" className="w-full" onPress={() => {
+            if (confirm("Вы уверены, что хотите удалить эту дисциплину?")) {
+                store.deleteSubject(subject.id);
+                router.back();
+            }
+        }}>
+            Удалить дисциплину
+        </Button>
+
+    </div>
+  );
+}

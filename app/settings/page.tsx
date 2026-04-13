@@ -82,7 +82,7 @@ export default function SettingsPage() {
 
             <ListBox
             onAction={(key) => {
-                router.push(`/settings/test/${key}`);
+                router.push(`/settings/subjects/${key}`);
             }}
             >
             {data.subjects.sort((a, b) => a.name.localeCompare(b.name)).map((s, i) => (
