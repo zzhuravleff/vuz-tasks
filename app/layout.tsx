@@ -24,7 +24,7 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="flex flex-col items-center min-h-full bg-[#f5f5f5]">
-        <main className="w-full mb-24">{children}</main>
+        <main className="w-full p-4 mb-24">{children}</main>
         <Menu />
       </body>
     </html>
