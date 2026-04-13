@@ -3,9 +3,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Название вашего приложения',
-    short_name: 'AppName',
-    description: 'Описание вашего приложения',
+    name: 'ВУЗ Tasks - Отслеживайте свои учебные задачи эффективно',
+    short_name: 'ВУЗ Tasks',
+    description: 'Приложение для управления учебными задачами, интегрированное с твоим расписанием. Создавайте задачи на основе расписания и кастомные задачи, устанавливайте сроки и получайте уведомления.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
