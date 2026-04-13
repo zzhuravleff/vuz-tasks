@@ -313,7 +313,6 @@ export default function SubjectPage() {
                         <Input 
                             type="date"
                             variant="secondary"
-                            className="w-full"
                             value={customDate}
                             onChange={(e) => setCustomDate(e.target.value)}
                             min={new Date().toISOString().split('T')[0]}
@@ -325,7 +324,6 @@ export default function SubjectPage() {
                         <Input 
                             type="time"
                             variant="secondary"
-                            className="w-full"
                             value={customTime}
                             onChange={(e) => setCustomTime(e.target.value)}
                         />
