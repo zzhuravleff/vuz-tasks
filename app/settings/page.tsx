@@ -39,6 +39,7 @@ export default function SettingsPage() {
                         type="date"
                         defaultValue={data.semester.startDate}
                         onChange={(e) => setStartDate(e.target.value)}
+                        placeholder="ДД мес. ГГГГ"
                         variant="secondary"
                         className="w-full"
                     />

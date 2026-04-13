@@ -155,7 +155,7 @@ export default function SubjectPage() {
 
         {/* добавление пары */}
         <div className="flex flex-col gap-2 bg-white p-3 rounded-3xl">
-            <Tabs onSelectionChange={(t) => setTypeRule(t as ScheduleRule["type"])}>
+            <Tabs onSelectionChange={(t) => setTypeRule(t as ScheduleRule["type"])} className="w-full">
                 <Tabs.ListContainer>
                     <Tabs.List>
                       {TAB_ITEMS.map((tab) => (
@@ -228,6 +228,7 @@ export default function SubjectPage() {
                 <div className="flex flex-col gap-2">
                     <Input
                         type="date"
+                        placeholder="ДД мес. ГГГГ"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         variant="secondary"
