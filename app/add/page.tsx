@@ -332,7 +332,7 @@ export default function SubjectPage() {
             )}
 
             <Button 
-                className="mt-4" 
+                className="w-full" 
                 size="lg" 
                 isDisabled={
                     typeTask === "Расписание" 
