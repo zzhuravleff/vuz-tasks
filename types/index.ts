@@ -36,6 +36,7 @@ export type Task =
       type: "Расписание";
 
       subjectId: string;
+      subjectName: string;
 
       deadline: string; // 🔥 ключевое поле
 

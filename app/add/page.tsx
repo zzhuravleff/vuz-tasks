@@ -43,6 +43,8 @@ export default function SubjectPage() {
     const [customDate, setCustomDate] = useState<any>(null);
     const [customTime, setCustomTime] = useState<any>(null);
 
+    const selectedSubject = data.subjects.find(s => s.id === selectedSubjectId);
+
     useEffect(() => {
         setIsMounted(true);
     }, []);
@@ -107,13 +109,28 @@ export default function SubjectPage() {
             
             dates.forEach((date) => {
                 rule.lesson.forEach((lessonNumber) => {
+                    const timeStr = LESSON_TIMES[lessonNumber];
+                    const [hours, minutes] = timeStr.split(':').map(Number);
+                    
+                    // Создаём дату
+                    const lessonDate = new Date(date);
+                    lessonDate.setHours(hours, minutes, 0, 0);
+                    
+                    // 🔥 ФОРМИРУЕМ ЛОКАЛЬНУЮ СТРОКУ (как в кастомных задачах)
+                    const year = lessonDate.getFullYear();
+                    const month = String(lessonDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(lessonDate.getDate()).padStart(2, '0');
+                    const hour = String(lessonDate.getHours()).padStart(2, '0');
+                    const minute = String(lessonDate.getMinutes()).padStart(2, '0');
+                    const localDateTimeString = `${year}-${month}-${day}T${hour}:${minute}:00`;
+                    
                     lessons.push({
-                        id: `${date.toISOString()}-${lessonNumber}`,
-                        date: date,
+                        id: `${localDateTimeString}-${lessonNumber}`,
+                        date: lessonDate,
                         lessonNumber: lessonNumber,
-                        startTime: LESSON_TIMES[lessonNumber] || "Время не указано",
-                        displayText: `${date.toLocaleDateString()} — ${lessonNumber} пара (${LESSON_TIMES[lessonNumber] || "?"})`,
-                        dateISO: date.toISOString(),
+                        startTime: timeStr,
+                        displayText: `${date.toLocaleDateString()} — ${lessonNumber} пара (${timeStr})`,
+                        dateISO: localDateTimeString,
                     });
                 });
             });
@@ -136,7 +153,7 @@ export default function SubjectPage() {
             
             const now = new Date();
             
-            // Получаем ID уже занятых пар (только из задач типа "Расписание")
+            // Получаем ID уже занятых пар
             const occupiedLessonIds = new Set(
                 data.tasks
                     .filter((task): task is Extract<Task, { type: "Расписание" }> => 
@@ -144,17 +161,13 @@ export default function SubjectPage() {
                         task.subjectId === selectedSubjectId && 
                         task.status === "active"
                     )
-                    .map(task => `${task.deadline}-${task.lessons}`)
+                    .map(task => `${task.deadline}-${task.lessons}`) // Теперь формат совпадает с lesson.id
             );
             
-            // Фильтруем: 
-            // 1. Убираем занятые пары
-            // 2. Убираем прошедшие пары (дата + время уже прошли)
+            // Фильтруем занятые и прошедшие пары
             return allLessons.filter(lesson => {
-                // Проверяем, не занята ли пара
                 if (occupiedLessonIds.has(lesson.id)) return false;
                 
-                // Проверяем, не прошла ли уже пара
                 const lessonDateTime = new Date(lesson.date);
                 const [hours, minutes] = lesson.startTime.split(':').map(Number);
                 lessonDateTime.setHours(hours, minutes, 0, 0);
@@ -167,13 +180,14 @@ export default function SubjectPage() {
     const getCombinedDeadline = () => {
         if (!customDate || !customTime) return null;
         
-        // customDate - это CalendarDate, customTime - это Time
-        const date = customDate.toDate(getLocalTimeZone());
+        const year = customDate.year;
+        const month = String(customDate.month).padStart(2, '0');
+        const day = String(customDate.day).padStart(2, '0');
+        const hour = String(customTime.hour).padStart(2, '0');
+        const minute = String(customTime.minute).padStart(2, '0');
         
-        // У Time нет toDate(), нужно использовать его свойства
-        date.setHours(customTime.hour, customTime.minute, 0, 0);
-        
-        return date.toISOString();
+        // Тот же формат
+        return `${year}-${month}-${day}T${hour}:${minute}:00`;
     };
 
     if (!isMounted || !data) return null;
@@ -350,6 +364,7 @@ export default function SubjectPage() {
                             id: crypto.randomUUID(),
                             type: "Расписание",
                             subjectId: selectedSubjectId!,
+                            subjectName: selectedSubject?.name || "", // 🔥 СОХРАНЯЕМ НАЗВАНИЕ
                             deadline: selectedLessonData.dateISO,
                             lessons: selectedLessonData.lessonNumber,
                             description: taskDescription || undefined,
