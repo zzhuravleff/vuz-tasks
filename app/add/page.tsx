@@ -307,30 +307,28 @@ export default function SubjectPage() {
 
             
              (
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-2">
-                            <Label isRequired>Дата дедлайна</Label>
-                            <Input 
-                                type="date"
-                                variant="secondary"
-                                className="w-full"
-                                value={customDate}
-                                onChange={(e) => setCustomDate(e.target.value)}
-                                min={new Date().toISOString().split('T')[0]}
-                            />
-                        </div>
+                <div className="flex flex-col gap-4 w-full">
+                    <div className="flex flex-col gap-2 w-full">
+                        <Label isRequired>Дата дедлайна</Label>
+                        <Input 
+                            type="date"
+                            variant="secondary"
+                            className="w-full"
+                            value={customDate}
+                            onChange={(e) => setCustomDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                        />
+                    </div>
 
-                        <div className="flex flex-col gap-2">
-                            <Label isRequired>Время дедлайна</Label>
-                            <Input 
-                                type="time"
-                                variant="secondary"
-                                className="w-full"
-                                value={customTime}
-                                onChange={(e) => setCustomTime(e.target.value)}
-                            />
-                        </div>
+                    <div className="flex flex-col gap-2 w-full">
+                        <Label isRequired>Время дедлайна</Label>
+                        <Input 
+                            type="time"
+                            variant="secondary"
+                            className="w-full"
+                            value={customTime}
+                            onChange={(e) => setCustomTime(e.target.value)}
+                        />
                     </div>
                 </div>
             )}
