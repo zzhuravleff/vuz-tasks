@@ -130,21 +130,38 @@ export default function SubjectPage() {
     // Мемоизируем сгенерированные пары для выбранной дисциплины
     const lessons = useMemo(() => {
         if (!selectedSubjectId) return [];
-        return generateLessonsForSubject(selectedSubjectId);
+        
+        // Генерируем все пары
+        const allLessons = generateLessonsForSubject(selectedSubjectId);
+        
+        const now = new Date();
+        
+        // Получаем ID уже занятых пар (из активных задач по расписанию)
+        const occupiedLessonIds = new Set(
+            data.tasks
+                .filter(task => 
+                    task.type === "Расписание" && 
+                    task.subjectId === selectedSubjectId && 
+                    task.status === "active"
+                )
+                .map(task => `${task.deadline}-${task.lessons}`)
+        );
+        
+        // Фильтруем: 
+        // 1. Убираем занятые пары
+        // 2. Убираем прошедшие пары (дата + время уже прошли)
+        return allLessons.filter(lesson => {
+            // Проверяем, не занята ли пара
+            if (occupiedLessonIds.has(lesson.id)) return false;
+            
+            // Проверяем, не прошла ли уже пара
+            const lessonDateTime = new Date(lesson.date);
+            const [hours, minutes] = lesson.startTime.split(':').map(Number);
+            lessonDateTime.setHours(hours, minutes, 0, 0);
+            
+            return lessonDateTime > now;
+        });
     }, [selectedSubjectId, data]);
-
-    // Функция для получения комбинированной даты и времени
-    const getCombinedDeadline = () => {
-        if (!customDate || !customTime) return null;
-        
-        // customDate - это CalendarDate, customTime - это Time
-        const date = customDate.toDate(getLocalTimeZone());
-        
-        // У Time нет toDate(), нужно использовать его свойства
-        date.setHours(customTime.hour, customTime.minute, 0, 0);
-        
-        return date.toISOString();
-    };
 
     if (!isMounted || !data) return null;
 
