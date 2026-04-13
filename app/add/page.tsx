@@ -206,10 +206,15 @@ export default function SubjectPage() {
 
             <div className="flex flex-col gap-2">
                 <Label>Описание задачи</Label>
-                <TextArea 
+                <TextArea
                     rows={6} 
-                    variant="secondary" 
-                    placeholder="Введите описание вашей задачи"
+                    variant="secondary"
+                    disabled={data.subjects.length === 0 && typeTask === "Расписание"} 
+                    placeholder={
+                            (data.subjects.length === 0 && typeTask === "Расписание") 
+                                ? "Нет доступных дисциплин" 
+                                : "Введите описание вашей задачи"
+                        }
                     value={taskDescription}
                     onChange={(e) => setTaskDescription(e.target.value)}
                 />
@@ -245,10 +250,15 @@ export default function SubjectPage() {
             {/* Блок для задач по расписанию */}
             {typeTask === "Расписание" ? (
                 <>
-                    <Select 
+                    <Select
+                        isDisabled={data.subjects.length === 0} 
                         className="w-full" 
                         variant="secondary" 
-                        placeholder="Выберите одну дисциплину"
+                        placeholder={
+                            data.subjects.length === 0 
+                                ? "Нет доступных дисциплин" 
+                                : "Выберите одну дисциплину"
+                        }
                         selectedKey={selectedSubjectId}
                         onChange={(key) => {
                             setSelectedSubjectId(key as string);
