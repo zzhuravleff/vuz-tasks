@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Button, Chip, IconChevronLeft, Input, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScheduleRule } from "@/types";
 
 const TAB_ITEMS = [
@@ -63,8 +63,13 @@ export default function SubjectPage() {
   const [typeRule, setTypeRule] = useState("weekly");
   const [date, setDate] = useState("");
   const [lesson, setLesson] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!data) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || !data) return null;
 
   const subject = data.subjects.find((s) => s.id === id);
   if (!subject) return <div>Discipline not found</div>;
@@ -97,12 +102,12 @@ export default function SubjectPage() {
 
   return (
     <div className="flex flex-col gap-4 w-full">
-        <Button variant="tertiary" onPress={() => router.back()}>
+        <Button variant="tertiary" className="fixed" onPress={() => router.back()}>
             <IconChevronLeft className="size-4" />
             Назад
         </Button>
 
-        <h1 className="text-2xl font-medium text-center">
+        <h1 className="text-2xl font-medium text-center mt-12">
             {subject.name}
         </h1>
 

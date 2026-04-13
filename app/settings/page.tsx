@@ -3,18 +3,27 @@
 import { useStore } from "@/hooks/useStore";
 import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SettingsPage() {
 
     const { data, store } = useStore();
     const [newSubject, setNewSubject] = useState("");
 
+    const [startDate, setStartDate] = useState("");
+    const [weeks, setWeeks] = useState(0);
+
     const router = useRouter();
 
     const colors = ["accent", "default", "success", "warning", "danger"] as const;
 
-    if (!data) return null;
+    const [isMounted, setIsMounted] = useState(false);
+    
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+    
+    if (!isMounted || !data) return null;
 
     return (
     <div className="flex flex-col gap-4" suppressHydrationWarning={false}>
@@ -25,33 +34,34 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-2 p-3 bg-white w-full rounded-3xl">
                 <div className="flex flex-col gap-1">
                     <Label>Дата начала</Label>
-                    <Input
+                    <div className="flex gap-2">
+                        <Input
                         type="date"
-                        value={data.semester.startDate}
-                        onChange={(e) =>
-                            store.updateSemester({
-                            ...data.semester,
-                            startDate: e.target.value,
-                            })
-                        }
+                        defaultValue={data.semester.startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
                         variant="secondary"
+                        className="w-full"
                     />
+                        <Button className={`w-full ${!startDate || startDate === data.semester.startDate ? "hidden" : ""}`} isDisabled={!startDate || startDate === data.semester.startDate} onClick={() => store.updateSemester({ ...data.semester, startDate })}>
+                            Сохранить
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col gap-1">
                     <Label>Количество недель</Label>
-                    <Input
-                    type="number"
-                    value={data.semester.weeks}
-                    onChange={(e) =>
-                        store.updateSemester({
-                            ...data.semester,
-                            weeks: parseInt(e.target.value) || 0,
-                        })
-                    }
-                    variant="secondary"
-                    className="w-full"
-                    />
+                    <div className="flex gap-2">
+                        <Input
+                        type="number"
+                        defaultValue={data.semester.weeks}
+                        onChange={(e) => setWeeks(parseInt(e.target.value) || 0)}
+                        variant="secondary"
+                        className="w-full"
+                        />
+                        <Button className={`w-full ${!weeks || weeks === data.semester.weeks ? "hidden" : ""}`} isDisabled={!weeks || weeks === data.semester.weeks} onClick={() => store.updateSemester({ ...data.semester, weeks })}>
+                            Сохранить
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,14 +99,16 @@ export default function SettingsPage() {
                     <ListBox.Item key={s.id} id={s.id} className="flex justify-between items-center">
                         <div className="flex gap-2 items-center">
                             <Avatar variant="soft" color={colors[i % colors.length]}>
-                                <Avatar.Fallback>{s.name[0]}</Avatar.Fallback>
+                                <Avatar.Fallback className="uppercase">{s.name[0]}{s.name.split(" ").length > 1 ? s.name.split(" ")[1][0] : ""}</Avatar.Fallback>
                             </Avatar>
                             <span>{s.name}</span>
                         </div>
                         <Button variant="danger-soft"
                         onClick={(e) => {
                             e.stopPropagation();
-                            store.deleteSubject(s.id);
+                            if (confirm("Вы уверены, что хотите удалить эту дисциплину?")) {
+                                store.deleteSubject(s.id);
+                            }
                         }}
                         >
                             Delete
