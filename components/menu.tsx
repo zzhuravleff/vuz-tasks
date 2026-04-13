@@ -15,7 +15,7 @@ export default function Menu() {
   const pathname = usePathname();
 
   return (
-    <div className={`fixed bottom-0 z-50 flex justify-center w-full bg-white/20 backdrop-blur-lg border-t border-gray-200/50 py-2 ${(pathname === "/add" || pathname.startsWith("/settings/subject")) ? "hidden" : ""}`}>
+    <div className={`fixed bottom-0 z-50 flex justify-center w-full bg-white/20 backdrop-blur-lg border-t border-gray-200/50 py-2 pb-6 ${(pathname === "/add" || pathname.startsWith("/settings/subject")) ? "hidden" : ""}`}>
       <div className="flex items-center gap-2">
         
         {items.map((item) => {
@@ -33,7 +33,7 @@ export default function Menu() {
                 <span className="absolute inset-0" />
               )}
 
-              <Icon className="relative z-10 size-5" />
+              <Icon className="relative z-10 size-6" />
               <span className="text-[12px] relative z-10">{item.label}</span>
             </button>
           );
