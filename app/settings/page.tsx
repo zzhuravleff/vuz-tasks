@@ -1,18 +1,23 @@
 "use client";
 
-import { useAppData } from "@/hooks/useAppData";
+import { useStore } from "@/hooks/useStore";
+import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Input, Button, Label, ListBox, Description, Avatar } from "@heroui/react";
 
 export default function SettingsPage() {
-  const { data, update } = useAppData();
 
-  const [newSubject, setNewSubject] = useState("");
+    const { data, store } = useStore();
+    const [newSubject, setNewSubject] = useState("");
 
-  if (!data) return null;
+    const router = useRouter();
 
-  return (
-    <div className="flex flex-col gap-4">
+    const colors = ["accent", "default", "success", "warning", "danger"] as const;
+
+    if (!data) return null;
+
+    return (
+    <div className="flex flex-col gap-4" suppressHydrationWarning={false}>
 
         <div className="flex flex-col items-center gap-3">
             <h1 className="font-medium text-2xl">Семестр</h1>
@@ -22,15 +27,12 @@ export default function SettingsPage() {
                     <Label>Дата начала</Label>
                     <Input
                         type="date"
-                        value={data.semester.startDate.split("T")[0]}
+                        value={data.semester.startDate}
                         onChange={(e) =>
-                            update((d) => ({
-                            ...d,
-                            semester: {
-                                ...d.semester,
-                                startDate: e.target.value,
-                            },
-                            }))
+                            store.updateSemester({
+                            ...data.semester,
+                            startDate: e.target.value,
+                            })
                         }
                         variant="secondary"
                     />
@@ -42,13 +44,10 @@ export default function SettingsPage() {
                     type="number"
                     value={data.semester.weeks}
                     onChange={(e) =>
-                        update((d) => ({
-                        ...d,
-                        semester: {
-                            ...d.semester,
-                            weeks: Number(e.target.value),
-                        },
-                        }))
+                        store.updateSemester({
+                            ...data.semester,
+                            weeks: parseInt(e.target.value) || 0,
+                        })
                     }
                     variant="secondary"
                     className="w-full"
@@ -58,15 +57,14 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-            <h1 className="text-xl font-semibold">Дисциплины</h1>
+            <h1 className="text-2xl font-medium">Дисциплины</h1>
 
-            {/* ================= ADD SUBJECT ================= */}
             <div className="flex flex-col gap-2 w-full">
                 <Input
                 className="w-full"
                 variant="secondary"
                 value={newSubject}
-                onChange={(event) => setNewSubject(event.target.value)}
+                onChange={(e) => setNewSubject(e.target.value)}
                 placeholder="Новая дисциплина"
                 />
 
@@ -74,20 +72,7 @@ export default function SettingsPage() {
                 className="w-full"
                 isDisabled={!newSubject.trim()}
                 onClick={() => {
-                    if (!newSubject.trim()) return;
-
-                    update((d) => ({
-                    ...d,
-                    subjects: [
-                        ...d.subjects,
-                        {
-                        id: crypto.randomUUID(),
-                        name: newSubject,
-                        rules: [],
-                        },
-                    ],
-                    }));
-
+                    store.addSubject(newSubject);
                     setNewSubject("");
                 }}
                 >
@@ -95,23 +80,24 @@ export default function SettingsPage() {
                 </Button>
             </div>
 
-            {/* ================= SUBJECTS ================= */}
-            <ListBox>
-            {data.subjects.map((s, i) => (
-                    <ListBox.Item key={s.id} className="flex justify-between items-center p-0">
+            <ListBox
+            onAction={(key) => {
+                router.push(`/settings/test/${key}`);
+            }}
+            >
+            {data.subjects.sort((a, b) => a.name.localeCompare(b.name)).map((s, i) => (
+                    <ListBox.Item key={s.id} id={s.id} className="flex justify-between items-center">
                         <div className="flex gap-2 items-center">
-                            <Avatar variant="soft" color={["accent", "default", "success", "warning", "danger"][i % 5] as any}>
+                            <Avatar variant="soft" color={colors[i % colors.length]}>
                                 <Avatar.Fallback>{s.name[0]}</Avatar.Fallback>
                             </Avatar>
                             <span>{s.name}</span>
                         </div>
                         <Button variant="danger-soft"
-                            onClick={() =>
-                            update((d) => ({
-                                ...d,
-                                subjects: d.subjects.filter((x) => x.id !== s.id),
-                            }))
-                            }
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            store.deleteSubject(s.id);
+                        }}
                         >
                             Delete
                         </Button>
@@ -122,5 +108,5 @@ export default function SettingsPage() {
         
       
     </div>
-  );
+    );
 }

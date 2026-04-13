@@ -1,14 +1,4 @@
 // /types/index.ts
-export enum DayOfWeek {
-  Monday = 1,
-  Tuesday,
-  Wednesday,
-  Thursday,
-  Friday,
-  Saturday,
-  Sunday,
-}
-
 export type Semester = {
   startDate: string;
   weeks: number;
@@ -22,26 +12,22 @@ export type Subject = {
 
 export type ScheduleRule =
   | {
-      id: string; // 🔥 обязательно
-      type: "weekly";
-      days: {
-        dayOfWeek: DayOfWeek;
-        lessons: number;
-      }[];
+      id: string;
+      type: "Еженедельно";
+      dayOfWeek: number;
+      lesson: number;
     }
   | {
       id: string;
-      type: "odd" | "even";
-      days: {
-        dayOfWeek: DayOfWeek;
-        lessons: number;
-      }[];
+      type: "Нечёт" | "Чёт";
+      dayOfWeek: number;
+      lesson: number;
     }
   | {
       id: string;
-      type: "custom";
+      type: "Кастом";
       date: string;
-      lessons: number;
+      lesson: number;
     };
 
 export type Task =
