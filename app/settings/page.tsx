@@ -4,6 +4,7 @@ import { useStore } from "@/hooks/useStore";
 import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {TrashBin} from '@gravity-ui/icons';
 
 export default function SettingsPage() {
 
@@ -103,7 +104,7 @@ export default function SettingsPage() {
                             </Avatar>
                             <span>{s.name}</span>
                         </div>
-                        <Button variant="danger-soft"
+                        <Button isIconOnly variant="danger-soft"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (confirm("Вы уверены, что хотите удалить эту дисциплину?")) {
@@ -111,7 +112,7 @@ export default function SettingsPage() {
                             }
                         }}
                         >
-                            Delete
+                            <TrashBin />
                         </Button>
                     </ListBox.Item>
             ))}
