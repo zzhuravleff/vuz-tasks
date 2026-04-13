@@ -1,11 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea, DateField, TimeField } from "@heroui/react";
+import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
 import { useState, useEffect, useMemo } from "react";
 import { Task, ScheduleRule } from "@/types";
-import { parseDate, getLocalTimeZone, today, Time } from "@internationalized/date";
 
 const TAB_ITEMS = [
     { label: "Расписание" },
