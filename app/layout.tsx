@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Menu from "@/components/menu";
 import AddTask from "@/components/addTask";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,6 +26,7 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="flex flex-col items-center min-h-full bg-[#f5f5f5]">
+        <ServiceWorkerRegistrar />
         <main className="w-full p-4 mb-24">{children}</main>
         <Menu />
       </body>

@@ -4,6 +4,7 @@ import { useStore } from "@/hooks/useStore";
 import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { version } from "../../lib/version"
 
 export default function SettingsPage() {
 
@@ -113,6 +114,10 @@ export default function SettingsPage() {
                 store.clearAllData();
             }
         }}>Сбросить все данные</Button>
+
+        <div className="w-full text-gray-600 text-center font-regular">
+            Версия: {version}
+        </div>
         
       
     </div>
