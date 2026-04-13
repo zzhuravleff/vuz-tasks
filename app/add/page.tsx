@@ -40,8 +40,8 @@ export default function SubjectPage() {
     const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
     const [taskTitle, setTaskTitle] = useState("");
     const [taskDescription, setTaskDescription] = useState("");
-    const [customDate, setCustomDate] = useState<any>(null);
-    const [customTime, setCustomTime] = useState<any>(null);
+    const [customDate, setCustomDate] = useState<string>("");
+    const [customTime, setCustomTime] = useState<string>("");
 
     const selectedSubject = data.subjects.find(s => s.id === selectedSubjectId);
 
@@ -179,15 +179,7 @@ export default function SubjectPage() {
     // Функция для получения комбинированной даты и времени
     const getCombinedDeadline = () => {
         if (!customDate || !customTime) return null;
-        
-        const year = customDate.year;
-        const month = String(customDate.month).padStart(2, '0');
-        const day = String(customDate.day).padStart(2, '0');
-        const hour = String(customTime.hour).padStart(2, '0');
-        const minute = String(customTime.minute).padStart(2, '0');
-        
-        // Тот же формат
-        return `${year}-${month}-${day}T${hour}:${minute}:00`;
+        return `${customDate}T${customTime}:00`;
     };
 
     if (!isMounted || !data) return null;
@@ -230,8 +222,8 @@ export default function SubjectPage() {
                     setTypeTask(t as "Расписание" | "Кастомная");
                     // Сбрасываем специфичные для типа значения при переключении
                     if (t === "Расписание") {
-                        setCustomDate(null);
-                        setCustomTime(null);
+                        setCustomDate("");
+                        setCustomTime("");
                     } else {
                         setSelectedSubjectId(null);
                         setSelectedLesson(null);
@@ -317,32 +309,29 @@ export default function SubjectPage() {
             
              (
                 <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                        <DateField 
-                            className="w-full"
-                            value={customDate}
-                            onChange={setCustomDate}
-                            minValue={today(getLocalTimeZone())}
-                        >
-                            <Label>Выберите дату</Label>
-                            <DateField.Group variant="secondary">
-                                <DateField.Input>{(segment) => <DateField.Segment segment={segment} />}</DateField.Input>
-                            </DateField.Group>
-                        </DateField>
-                    </div>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-2">
+                            <Label isRequired>Дата дедлайна</Label>
+                            <Input 
+                                type="date"
+                                variant="secondary"
+                                className="w-full"
+                                value={customDate}
+                                onChange={(e) => setCustomDate(e.target.value)}
+                                min={new Date().toISOString().split('T')[0]}
+                            />
+                        </div>
 
-                    <div className="flex flex-col gap-2">
-                        <TimeField 
-                            className="w-full"
-                            value={customTime}
-                            onChange={setCustomTime}
-                            hourCycle={24}
-                        >
-                            <Label>Выберите время</Label>
-                            <TimeField.Group variant="secondary">
-                                <TimeField.Input>{(segment) => <TimeField.Segment segment={segment} />}</TimeField.Input>
-                            </TimeField.Group>
-                        </TimeField>
+                        <div className="flex flex-col gap-2">
+                            <Label isRequired>Время дедлайна</Label>
+                            <Input 
+                                type="time"
+                                variant="secondary"
+                                className="w-full"
+                                value={customTime}
+                                onChange={(e) => setCustomTime(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
