@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { Button, Chip, IconChevronLeft, Input, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
+import { Button, Chip, IconChevronLeft, Input, Label, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
 import { useState, useEffect } from "react";
 import { ScheduleRule } from "@/types";
@@ -226,13 +226,16 @@ export default function SubjectPage() {
             ) : (
               <>
                 <div className="flex flex-col gap-2">
-                    <Input
-                        type="date"
-                        placeholder="ДД мес. ГГГГ"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        variant="secondary"
-                    />
+                    
+                    <div className="flex flex-col gap-1">
+                        <Label>Дата пары</Label>
+                        <Input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            variant="secondary"
+                        />
+                    </div>
                     {/* ПАРА */}
                     <ToggleButtonGroup
                       className="w-full"
