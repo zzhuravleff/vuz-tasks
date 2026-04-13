@@ -107,6 +107,11 @@ export default function SubjectPage() {
         </h1>
 
         {/* список */}
+        {sortedRules.length === 0 ? (
+          <div className="w-full text-center font-regular text-lg">
+            Пока пары не добавлены...
+          </div>
+        ) : null}
         <div className="flex flex-col gap-2">
             {sortedRules.map((r) => (
                 <div key={r.id} className="flex items-center gap-2">
