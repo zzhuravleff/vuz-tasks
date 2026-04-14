@@ -5,6 +5,7 @@ import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { version } from "../../lib/version"
+import DataActions from "@/components/dataActions";
 
 export default function SettingsPage() {
 
@@ -109,11 +110,7 @@ export default function SettingsPage() {
             </ListBox>
         </div>
 
-        <Button variant="danger-soft" className="w-full" onClick={() => {
-            if (confirm("Вы уверены, что хотите сбросить все данные? Это действие необратимо.")) {
-                store.clearAllData();
-            }
-        }}>Сбросить все данные</Button>
+        <DataActions />
 
         <div className="w-full text-gray-600 text-center font-regular">
             Версия: {version}

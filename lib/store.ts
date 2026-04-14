@@ -206,6 +206,47 @@ function clearAllData() {
   emit();
 }
 
+function exportData(): AppData {
+  return state;
+}
+
+function importData(imported: AppData) {
+  // базовая валидация
+  if (
+    !imported ||
+    typeof imported !== "object" ||
+    !Array.isArray(imported.subjects) ||
+    !Array.isArray(imported.tasks) ||
+    !imported.semester
+  ) {
+    throw new Error("Неверный формат файла");
+  }
+
+  // версия (на будущее)
+  if (!imported.version) {
+    imported.version = 1;
+  }
+
+  // 🔥 обновляем state
+  state = {
+    ...imported,
+    version: Date.now(), // чтобы отличалось
+  };
+
+  emit(); // 🔥 сохранение + обновление UI
+}
+
+function getBackup(): AppData | null {
+  const raw = localStorage.getItem("backup_before_import");
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 /* =========================================================
    📦 EXPORT
 ========================================================= */
@@ -231,4 +272,8 @@ export const store = {
   completeTask,
   
   clearAllData,
+
+  exportData,
+  importData,
+  getBackup,
 };
