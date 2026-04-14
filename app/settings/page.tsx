@@ -5,6 +5,7 @@ import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { version } from "../../lib/version"
+import LoadingScreen from "@/components/loadingScreen";
 
 export default function SettingsPage() {
 
@@ -23,6 +24,16 @@ export default function SettingsPage() {
     useEffect(() => {
         setIsMounted(true);
     }, []);
+    
+    const [isLoading, setIsLoading] = useState(true);
+            
+            useEffect(() => {
+                if (data) {
+                    setIsLoading(false);
+                }
+            }, [data]);
+            
+            if (isLoading) return <LoadingScreen />;
     
     if (!isMounted || !data) return null;
 
