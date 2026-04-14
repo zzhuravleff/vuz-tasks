@@ -4,6 +4,7 @@ import "./globals.css";
 import Menu from "@/components/menu";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,6 +28,7 @@ export default function RootLayout({
     >
       <body className="flex flex-col items-center min-h-full bg-[#f5f5f5]">
         <Analytics />
+        <SpeedInsights />
         <ServiceWorkerRegistrar />
         <main className="w-full p-4 mb-24">{children}</main>
         <Menu />
