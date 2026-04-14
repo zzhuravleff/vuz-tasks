@@ -66,7 +66,7 @@ export default function TasksList() {
     return (
         <div className="flex flex-col gap-2">
             {sortedTasks.map(task => (
-                <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col" onClick={() => {router.push(`/task/${task.id}`)}}>
+                <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
                     {((new Date(task.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60)) < 48 && (
                         <div className="p-0 m-0">
                             <Chip color="danger" variant="soft" size="lg">Скоро</Chip>
