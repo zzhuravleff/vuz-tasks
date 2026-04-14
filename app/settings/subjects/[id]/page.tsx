@@ -5,7 +5,6 @@ import { Button, Chip, IconChevronLeft, Input, Label, Tabs, ToggleButton, Toggle
 import { useStore } from "@/hooks/useStore";
 import { useState, useEffect } from "react";
 import { ScheduleRule } from "@/types";
-import LoadingScreen from "@/components/loadingScreen";
 
 const TAB_ITEMS = [
     { label: "Еженедельно" },
@@ -75,16 +74,6 @@ export default function SubjectPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const [isLoading, setIsLoading] = useState(true);
-            
-            useEffect(() => {
-                if (data) {
-                    setIsLoading(false);
-                }
-            }, [data]);
-            
-            if (isLoading) return <LoadingScreen />;
 
   if (!isMounted || !data) return null;
 

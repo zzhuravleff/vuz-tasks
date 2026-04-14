@@ -1,21 +1,9 @@
 "use client";
 
-import LoadingScreen from "@/components/loadingScreen";
 import { useStore } from "@/hooks/useStore";
-import { useEffect, useState } from "react";
 
 export default function StatsPage() {
   const { data, store } = useStore();
-
-  const [isLoading, setIsLoading] = useState(true);
-            
-            useEffect(() => {
-                if (data) {
-                    setIsLoading(false);
-                }
-            }, [data]);
-            
-            if (isLoading) return <LoadingScreen />;
 
   if (!data) return null;
 

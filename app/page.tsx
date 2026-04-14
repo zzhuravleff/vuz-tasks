@@ -1,6 +1,5 @@
 "use client";
 
-import LoadingScreen from "@/components/loadingScreen";
 import { useStore } from "@/hooks/useStore";
 import { Chip } from "@heroui/react";
 import { useRouter } from "next/navigation";
@@ -15,16 +14,6 @@ export default function TasksList() {
     useEffect(() => {
       setIsMounted(true);
     }, []);
-
-    const [isLoading, setIsLoading] = useState(true);
-    
-    useEffect(() => {
-        if (data) {
-            setIsLoading(false);
-        }
-    }, [data]);
-    
-    if (isLoading) return <LoadingScreen />;
 
     if (!isMounted || !data) return null;
 

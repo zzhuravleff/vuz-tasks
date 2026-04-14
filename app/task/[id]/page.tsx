@@ -5,7 +5,6 @@ import { Button, IconChevronLeft, Input, Label, ListBox, Select, TextArea } from
 import { useStore } from "@/hooks/useStore";
 import { useEffect, useMemo, useState } from "react";
 import { ScheduleRule, Task } from "@/types";
-import LoadingScreen from "@/components/loadingScreen";
 
 const LESSON_TIMES: Record<number, string> = {
     1: "9:00",
@@ -233,16 +232,6 @@ export default function SubjectPage() {
     task?.type === "Расписание"
         ? (!selectedLesson || !isScheduleChanged)
         : (!hasRequiredFields || !isCustomChanged);
-
-  const [isLoading, setIsLoading] = useState(true);
-          
-          useEffect(() => {
-              if (data) {
-                  setIsLoading(false);
-              }
-          }, [data]);
-          
-          if (isLoading) return <LoadingScreen />;
 
   if (!isMounted || !data) return null;
 

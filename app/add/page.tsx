@@ -5,7 +5,6 @@ import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea 
 import { useStore } from "@/hooks/useStore";
 import { useState, useEffect, useMemo } from "react";
 import { Task, ScheduleRule } from "@/types";
-import LoadingScreen from "@/components/loadingScreen";
 
 const TAB_ITEMS = [
     { label: "Расписание" },
@@ -181,16 +180,6 @@ export default function SubjectPage() {
         if (!customDate || !customTime) return null;
         return `${customDate}T${customTime}:00`;
     };
-
-    const [isLoading, setIsLoading] = useState(true);
-                
-                useEffect(() => {
-                    if (data) {
-                        setIsLoading(false);
-                    }
-                }, [data]);
-                
-                if (isLoading) return <LoadingScreen />;
 
     if (!isMounted || !data) return null;
 
