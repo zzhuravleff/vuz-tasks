@@ -5,6 +5,7 @@ import { Button, IconChevronLeft, Input, Label, ListBox, Select, TextArea } from
 import { useStore } from "@/hooks/useStore";
 import { useEffect, useMemo, useState } from "react";
 import { ScheduleRule, Task } from "@/types";
+import { TrashBin } from "@gravity-ui/icons";
 
 const LESSON_TIMES: Record<number, string> = {
     1: "9:00",
@@ -368,38 +369,49 @@ export default function SubjectPage() {
                         </div>
                     )}
 
-                    <Button variant="secondary" className="w-full"
-                    isDisabled={isDisabled}
-                    onPress={() => {
-                        if (task.type === "Расписание") {
-                            const l = lessons.find(x => x.id === selectedLesson);
-                            if (!l) return;
+                    <div className="flex gap-2">
+                        <Button variant="secondary" className="w-full"
+                        isDisabled={isDisabled}
+                        onPress={() => {
+                            if (task.type === "Расписание") {
+                                const l = lessons.find(x => x.id === selectedLesson);
+                                if (!l) return;
 
-                            store.updateTask({
-                            ...task,
-                            subjectId: selectedSubjectId!,
-                            deadline: l.dateISO,
-                            lessons: l.lessonNumber,
-                            description: taskDescription,
-                            });
-                            
-                        } else {
-                            const deadline = getCombinedDeadline();
-                            if (!deadline) return;
-                            
-                            store.updateTask({
-                            ...task,
-                            title: taskTitle,
-                            description: taskDescription || undefined,
-                            deadline: deadline,
-                            });
-                        }
+                                store.updateTask({
+                                ...task,
+                                subjectId: selectedSubjectId!,
+                                deadline: l.dateISO,
+                                lessons: l.lessonNumber,
+                                description: taskDescription,
+                                });
+                                
+                            } else {
+                                const deadline = getCombinedDeadline();
+                                if (!deadline) return;
+                                
+                                store.updateTask({
+                                ...task,
+                                title: taskTitle,
+                                description: taskDescription || undefined,
+                                deadline: deadline,
+                                });
+                            }
 
-                        router.back();
-                    }}
-                    >
-                        Сохранить
-                    </Button>
+                            router.back();
+                        }}
+                        >
+                            Сохранить
+                        </Button>
+
+                        <Button variant="danger-soft" className="shrink-0" isIconOnly onPress={() => {
+                            if (confirm("Вы уверены, что хотите удалить эту задачу?")) {
+                                store.deleteTask(task.id);
+                                router.back();
+                            }
+                        }}>
+                            <TrashBin />
+                        </Button>
+                    </div>
 
     </div>
 
