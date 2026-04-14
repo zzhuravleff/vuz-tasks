@@ -402,7 +402,7 @@ export default function SubjectPage() {
 
     </div>
 
-    <Button className="fixed bottom-4 left-1/2 -translate-x-1/2 w-3/4" size="lg" variant="primary"
+    <Button className="fixed bottom-4 left-1/2 -translate-x-1/2 w-3/4 bg-success shadow-success shadow-2xl" size="lg" variant="primary"
     onPress={() =>
         {
             store.updateTask({...task, status: "completed"});
