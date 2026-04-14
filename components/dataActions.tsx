@@ -18,7 +18,7 @@ export default function DataActions() {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `backup-${new Date()
+      a.download = `vuz-tasks-backup-${new Date()
         .toISOString()
         .split("T")[0]}.json`;
 

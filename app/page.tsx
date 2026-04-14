@@ -81,7 +81,7 @@ export default function TasksList() {
                         </span> */}
                     </div>
                     {task.description && (
-                        <div className="text-base font-regular text-gray-700 line-clamp-3">{task.description}</div>
+                        <div className="text-base font-regular text-gray-700 whitespace-pre-line">{task.description}</div>
                     )}
                     {task.type === "Расписание" && (
                         <div className="flex justify-between">
