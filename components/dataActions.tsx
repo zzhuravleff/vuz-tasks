@@ -70,6 +70,14 @@ export default function DataActions() {
         }
   };
 
+  const isEmptyData = () => {
+    return (
+        data.subjects.length === 0 &&
+        data.tasks.length === 0 &&
+        data.semester.weeks === 16 // дефолт
+    );
+    };
+
   return (
     <div className="flex flex-col gap-2 w-full">
       {/* EXPORT */}
@@ -92,7 +100,7 @@ export default function DataActions() {
       />
 
       {/* RESET */}
-      <Button size="sm" variant="danger-soft" className="w-full" onPress={handleReset}>
+      <Button size="sm" variant="danger-soft" isDisabled={isEmptyData()} className="w-full" onPress={handleReset}>
         Сброс данных
       </Button>
     </div>
