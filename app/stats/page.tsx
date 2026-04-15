@@ -1,7 +1,8 @@
 "use client";
 
 import { useStore } from "@/hooks/useStore";
-import { Chip } from "@heroui/react";
+import { Chip, Tabs } from "@heroui/react";
+import { useState } from "react";
 
 export default function StatsPage() {
   const { data, store } = useStore();
@@ -17,10 +18,38 @@ export default function StatsPage() {
     return new Date(t.deadline) < new Date();
   });
 
-  const statsTasks = data.tasks.filter(
-    (t) => (t.status == "completed") || (new Date(t.deadline) < new Date())
-  );
+  const [selectedTab, setSelectedTab] = useState("all");
 
+  const getSortDate = (task: any) => {
+    if (task.status === "completed") {
+      // Для выполненных - используем дату выполнения
+      return new Date(task.completedAt || task.deadline);
+    } else {
+      // Для просроченных и активных - используем дедлайн
+      return new Date(task.deadline);
+    }
+  };
+
+  const filteredTasks = () => {
+    switch (selectedTab) {
+        case "completed":
+            // Только выполненные
+            return data.tasks.sort((a, b) => new Date(b.completedAt || b.deadline).getTime() - new Date(a.completedAt || a.deadline).getTime()).filter(t => t.status === "completed");
+            
+        case "overdue":
+            // Только просроченные (не выполненные, с прошедшим дедлайном)
+            return data.tasks.sort((a, b) => new Date(b.deadline).getTime() - new Date(a.deadline).getTime()).filter(t => 
+                t.status !== "completed" && new Date(t.deadline) < new Date()
+            );
+            
+        default: // "all"
+            // Все НЕ активные = выполненные + просроченные
+            return data.tasks.sort((a, b) => getSortDate(b).getTime() - getSortDate(a).getTime()).filter(t => 
+                t.status === "completed" || new Date(t.deadline) < new Date()
+            );
+    }
+  };
+  
   const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const months = ['янв.', 'февр.', 'мар.', 'апр.', 'мая', 'июн.', 'июл.', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'];
@@ -33,111 +62,63 @@ export default function StatsPage() {
     };
 
   return (
-    // <div className="flex flex-col gap-6 w-full p-4">
-
-    //     {completedTasks.length === 0 ? (
-    //       <div className="text-gray-400">
-    //         Нет выполненных задач
-    //       </div>
-    //     ) : (
-    //       completedTasks.map((task) => (
-    //         <div
-    //           key={task.id}
-    //           className="p-3 border rounded cursor-pointer hover:bg-gray-100"
-    //           onClick={() => store.deleteTask(task.id)}
-    //         >
-    //           {task.type === "Расписание"
-    //             ? `Задача по расписанию`
-    //             : task.title}
-    //         </div>
-    //       ))
-    //     )}
-    //   </div>
-
-    //   {/* OVERDUE */}
-    //   <div className="flex flex-col gap-2">
-    //     <h2 className="text-lg font-medium">
-    //       Просроченные задачи
-    //     </h2>
-
-    //     {overdueTasks.length === 0 ? (
-    //       <div className="text-gray-400">
-    //         Нет просроченных задач
-    //       </div>
-    //     ) : (
-    //       overdueTasks.map((task) => (
-    //         <div
-    //           key={task.id}
-    //           className="p-3 border rounded cursor-pointer hover:bg-red-50"
-    //           onClick={() => store.deleteTask(task.id)}
-    //         >
-    //           {task.type === "Расписание"
-    //             ? `Просроченная задача`
-    //             : task.title}
-    //         </div>
-    //       ))
-    //     )}
-    //   </div>
-
-    // </div>
 
     <div className="flex flex-col gap-4">
-        <div className="w-full flex gap-2">
-            <div className="bg-success/50">
-                {completedTasks.length}
-            </div>
-            <div className="bg-danger/50">
-                {overdueTasks.length}
-            </div>
+      <div className="w-full flex gap-2">
+        <div className="bg-success/8 p-3 rounded-3xl flex-1 flex flex-col justify-between">
+          <span className="font-medium text-xl">Выполнено</span>
+          <span className="font-black text-6xl text-success">{completedTasks.length < 10 ? "0" : ""}{completedTasks.length}</span>
         </div>
+        <div className="bg-danger/8 p-3 rounded-3xl flex-1 flex flex-col justify-between">
+          <span className="font-medium text-xl">Просрочено</span>
+          <span className="font-black text-6xl text-danger">{overdueTasks.length < 10 ? "0" : ""}{overdueTasks.length}</span>
+        </div>
+      </div>
 
-      <div className="flex flex-col gap-3">
-        {statsTasks.map((task) => (
-          // <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
-          <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition">
-                              <div className="flex justify-between">
-                                  <span className="font-medium text-xl line-clamp-2">
-                                      {task.type === "Расписание" ? task.subjectName : task.title}
-                                  </span>
-                                  {/* <span className="text-sm text-muted">
-                                      {formatDate(task.deadline)}
-                                  </span> */}
-                              </div>
-                              {task.description && (
-                                  <div className="text-base font-regular text-gray-700 whitespace-pre-line">{task.description}</div>
-                              )}
-                              {/* {task.type === "Расписание" && (
-                                  <div className="flex justify-between">
-                                    <div className="flex gap-1 flex-wrap">
-                                        <Chip variant="soft" size="lg">{formatDate(task.deadline)}</Chip>
-                                        <Chip variant="soft" size="lg">{task.lessons} Пара</Chip>
-                                    </div>
-                                    <Chip color="accent" size="lg" variant="soft">
-                                      {task.type}
-                                    </Chip>
-                                  </div>
-                              )}
-                              {task.type === "Кастомная" && (
-                                  <div className="flex justify-between">
-                                    <div className="flex gap-1 flex-wrap">
-                                        <Chip variant="soft" size="lg">{formatDate(task.deadline)}</Chip>
-                                    </div>
-                                    <Chip color="warning" size="lg" variant="soft">
-                                      {task.type}
-                                    </Chip>
-                                  </div>
-                              )} */}
+      <Tabs className=""
+        selectedKey={selectedTab}
+        onSelectionChange={(key) => setSelectedTab(key as string)}
+      >
+        <Tabs.ListContainer>
+          <Tabs.List>
+            <Tabs.Tab key="all" id="all">
+              Все
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab key="completed" id="completed">
+              Выполненные
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab key="overdue" id="overdue">
+              Просроченные
+             <Tabs.Indicator />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+      </Tabs>
 
-                              <div className="flex justify-between">
-                                  <div className="flex gap-1 flex-wrap">
-                                      {task.status == "completed" ? (
-                                        <Chip color="success" variant="soft">Выполнено: {formatDate(task.deadline)}</Chip>
-                                      ) : (
-                                        <Chip color="danger" variant="soft">Дедлайн: {formatDate(task.deadline)}</Chip>
-                                      )}
-                                  </div>
-                                </div>
-                          </div>
+      <div className="flex flex-col gap-2">
+        {filteredTasks().map((task) => (
+        <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => store.deleteTask(task.id)}>
+          <div className="flex justify-between">
+            <span className="font-medium text-xl line-clamp-2">
+              {task.type === "Расписание" ? task.subjectName : task.title}
+            </span>
+          </div>
+          {task.description && (
+            <div className="text-base font-regular text-gray-700 whitespace-pre-line line-clamp-2">{task.description}</div>
+          )}
+
+          <div className="flex justify-between">
+            <div className="flex gap-1 flex-wrap">
+              {task.status == "completed" ? (
+                <Chip color="success" variant="soft">Выполнено: {formatDate(task.completedAt?? "Ошибка")}</Chip>
+              ) : (
+                 <Chip color="danger" variant="soft">Дедлайн: {formatDate(task.deadline)}</Chip>
+              )}
+            </div>
+          </div>
+        </div>
         ))}
       </div>
     </div>

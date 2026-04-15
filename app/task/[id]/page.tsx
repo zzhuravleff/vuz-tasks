@@ -418,7 +418,7 @@ export default function SubjectPage() {
     <Button className="fixed bottom-4 left-1/2 -translate-x-1/2 w-3/4 bg-success shadow-success/65 shadow-2xl" size="lg" variant="primary"
     onPress={() =>
         {
-            store.updateTask({...task, status: "completed"});
+            store.updateTask({...task, status: "completed", completedAt: new Date().toISOString()});
             router.back();
         }
     }>Выполнить</Button>

@@ -26,7 +26,7 @@ export default function RootLayout({
       lang="кг"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body className="flex flex-col items-center min-h-full bg-[#f5f5f5]">
+      <body className="flex flex-col items-center min-h-full bg-[#f5f5f5] font-inter">
         <Analytics />
         <ServiceWorkerRegistrar />
         <main className="w-full p-4 mb-24">{children}</main>

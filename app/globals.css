@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @import "@heroui/styles";
+
+@theme inline {
+  --font-inter: var(--font-inter);
+}

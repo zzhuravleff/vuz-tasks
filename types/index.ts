@@ -44,6 +44,7 @@ export type Task =
       description?: string;
 
       status: "active" | "completed";
+      completedAt?: string;
       createdAt: string; // ISO
     }
   | {
@@ -56,6 +57,7 @@ export type Task =
       deadline: string; // 🔥 вместо date + time
 
       status: "active" | "completed";
+      completedAt?: string;
       createdAt: string; // ISO
     };
 
