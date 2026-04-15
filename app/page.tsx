@@ -21,18 +21,6 @@ export default function TasksList() {
     
     const sortedTasks = activedTasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     
-    // Функция для правильного форматирования даты с учётом часового пояса
-    const formatDatePars = (dateString: string) => {
-        const date = new Date(dateString);
-        const months = ['янв.', 'февр.', 'мар.', 'апр.', 'мая', 'июн.', 'июл.', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'];
-        
-        const day = date.getDate();
-        const month = months[date.getMonth()];
-        const year = date.getFullYear();
-        
-        return `${day} ${month} ${year}`;
-    };
-
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const months = ['янв.', 'февр.', 'мар.', 'апр.', 'мая', 'июн.', 'июл.', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'];
@@ -86,7 +74,7 @@ export default function TasksList() {
                     {task.type === "Расписание" && (
                         <div className="flex justify-between">
                           <div className="flex gap-1 flex-wrap">
-                              <Chip variant="soft" size="lg">{formatDatePars(task.deadline)}</Chip>
+                              <Chip variant="soft" size="lg">{formatDate(task.deadline)}</Chip>
                               <Chip variant="soft" size="lg">{task.lessons} Пара</Chip>
                           </div>
                           <Chip color="accent" size="lg" variant="soft">
