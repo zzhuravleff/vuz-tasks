@@ -49,6 +49,10 @@ export default function StatsPage() {
             );
     }
   };
+
+  const allStatsTask = data.tasks.sort((a, b) => getSortDate(b).getTime() - getSortDate(a).getTime()).filter(t => 
+    t.status === "completed" || new Date(t.deadline) < new Date()
+  );
   
   const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -82,7 +86,7 @@ export default function StatsPage() {
         <Tabs.ListContainer>
           <Tabs.List>
             <Tabs.Tab key="all" id="all">
-              Все
+              Все ({allStatsTask.length})
               <Tabs.Indicator />
             </Tabs.Tab>
             <Tabs.Tab key="completed" id="completed">
