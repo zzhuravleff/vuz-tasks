@@ -41,7 +41,7 @@ export default function TasksList() {
 
     const overdueTasks24H = data.tasks.filter((t) => {
         if (t.status === "completed") return false;
-        if (((new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60)) < 24)
+        if (((new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60)) <= 24)
         return new Date(t.deadline) < new Date();
     });
     
@@ -71,7 +71,7 @@ export default function TasksList() {
                     </span>
                 </div>
             ) : (
-            <div>
+            <div className="flex flex-col gap-2">
             {activedTasks.map(task => (
                 <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
                     {((new Date(task.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60)) < 48 && (

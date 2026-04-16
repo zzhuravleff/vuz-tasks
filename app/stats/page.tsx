@@ -39,19 +39,19 @@ export default function StatsPage() {
         case "overdue":
             // Только просроченные (не выполненные, с прошедшим дедлайном)
             return data.tasks.sort((a, b) => new Date(b.deadline).getTime() - new Date(a.deadline).getTime()).filter(t => 
-                t.status !== "completed" && new Date(t.deadline) < new Date()
+                t.status !== "completed" && (((new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60)) > 24)
             );
             
         default: // "all"
             // Все НЕ активные = выполненные + просроченные
             return data.tasks.sort((a, b) => getSortDate(b).getTime() - getSortDate(a).getTime()).filter(t => 
-                t.status === "completed" || new Date(t.deadline) < new Date()
+                t.status === "completed" || (((new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60)) > 24)
             );
     }
   };
 
   const allStatsTask = data.tasks.sort((a, b) => getSortDate(b).getTime() - getSortDate(a).getTime()).filter(t => 
-    t.status === "completed" || new Date(t.deadline) < new Date()
+    t.status === "completed" || (((new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60)) > 24)
   );
   
   const formatDate = (dateString: string) => {
@@ -64,6 +64,16 @@ export default function StatsPage() {
         
         return `${day} ${month} ${year}`;
     };
+
+  if (allStatsTask.length === 0) return (
+    <div className="w-full flex items-center justify-center text-center mt-64">
+        <span className="font-medium text-xl">
+            Упс... Тут пусто
+        </span>
+    </div>
+  );
+
+  console.log(new Date().toISOString());
 
   return (
 
@@ -116,7 +126,11 @@ export default function StatsPage() {
           <div className="flex justify-between">
             <div className="flex gap-1 flex-wrap">
               {task.status == "completed" ? (
-                <Chip color="success" variant="soft">Выполнено: {formatDate(task.completedAt?? "Ошибка")}</Chip>
+                <div>
+                  {task.completedAt && (
+                    <Chip color={new Date(task.completedAt) > new Date(task.deadline) ? "warning" : "success" } variant="soft">Выполнено: {formatDate(task.completedAt || "Ошибка")}</Chip>
+                  )}
+                </div>
               ) : (
                  <Chip color="danger" variant="soft">Дедлайн: {formatDate(task.deadline)}</Chip>
               )}

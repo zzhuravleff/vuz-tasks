@@ -10,7 +10,7 @@ const STORAGE_KEY = "app_data_vuz_tasks_v1";
 
 const defaultData: AppData = {
   semester: {
-    startDate: new Date().toISOString(),
+    startDate: "2026-09-01",
     weeks: 16,
   },
   subjects: [],
