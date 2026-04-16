@@ -74,7 +74,7 @@ export default function StatsPage() {
           <span className="font-black text-6xl text-success">{completedTasks.length < 10 ? "0" : ""}{completedTasks.length}</span>
         </div>
         <div className="bg-danger/8 p-3 rounded-3xl flex-1 flex flex-col justify-between">
-          <span className="font-medium text-xl">Просрочено</span>
+          <span className="font-medium text-xl">Не выполнено</span>
           <span className="font-black text-6xl text-danger">{overdueTasks.length < 10 ? "0" : ""}{overdueTasks.length}</span>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function StatsPage() {
         <Tabs.ListContainer>
           <Tabs.List>
             <Tabs.Tab key="all" id="all">
-              Все ({allStatsTask.length})
+              Все {allStatsTask.length}
               <Tabs.Indicator />
             </Tabs.Tab>
             <Tabs.Tab key="completed" id="completed">
@@ -94,7 +94,7 @@ export default function StatsPage() {
               <Tabs.Indicator />
             </Tabs.Tab>
             <Tabs.Tab key="overdue" id="overdue">
-              Просроченные
+              Невыполненные
              <Tabs.Indicator />
             </Tabs.Tab>
           </Tabs.List>
