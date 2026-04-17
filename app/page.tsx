@@ -48,7 +48,7 @@ export default function TasksList() {
     return (
         <div className="flex flex-col gap-2">
             {overdueTasks24H.map(task => (
-                <div key={task.id} className="bg-warning/8 rounded-3xl p-3 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
+                <div key={task.id} className="bg-white border-warning/16 border-2 rounded-3xl p-3 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
                     <div className="flex justify-between">
                         <span className="font-medium text-xl line-clamp-2 text-warning">
                             {task.type === "Расписание" ? task.subjectName : task.title}
