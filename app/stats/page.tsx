@@ -15,7 +15,7 @@ export default function StatsPage() {
 
   const overdueTasks = data.tasks.filter((t) => {
     if (t.status === "completed") return false;
-    return new Date(t.deadline) < new Date();
+    return (((new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60)) > 24);
   });
 
   const [selectedTab, setSelectedTab] = useState("all");
@@ -79,11 +79,11 @@ export default function StatsPage() {
 
     <div className="flex flex-col gap-4">
       <div className="w-full flex gap-2">
-        <div className="bg-success/8 p-3 rounded-3xl flex-1 flex flex-col justify-between">
+        <div className="bg-white p-3 rounded-3xl flex-1 flex flex-col justify-between">
           <span className="font-medium text-xl">Выполнено</span>
           <span className="font-black text-6xl text-success">{completedTasks.length < 10 ? "0" : ""}{completedTasks.length}</span>
         </div>
-        <div className="bg-danger/8 p-3 rounded-3xl flex-1 flex flex-col justify-between">
+        <div className="bg-white p-3 rounded-3xl flex-1 flex flex-col justify-between">
           <span className="font-medium text-xl">Не выполнено</span>
           <span className="font-black text-6xl text-danger">{overdueTasks.length < 10 ? "0" : ""}{overdueTasks.length}</span>
         </div>
