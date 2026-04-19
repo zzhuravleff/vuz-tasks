@@ -117,7 +117,7 @@ export default function HomePage() {
           onClick={() => navigateToTask(task.id)}
         >
           {navigatingTaskId === task.id && isPending && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
               <Spinner size="lg" color="danger" />
             </div>
           )}
@@ -152,7 +152,7 @@ export default function HomePage() {
               onClick={() => navigateToTask(task.id)}
             >
               {navigatingTaskId === task.id && isPending && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
+                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
                   <Spinner size="lg" />
                 </div>
               )}
