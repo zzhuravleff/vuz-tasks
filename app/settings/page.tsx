@@ -156,7 +156,7 @@ export default function SettingsPage() {
                         >
                             {/* Спиннер при навигации */}
                             {navigatingSubjectId === s.id && isPending && (
-                                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
+                                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
                                     <Spinner size="lg" color={colorsSpinner[i % colors.length]} />
                                 </div>
                             )}
