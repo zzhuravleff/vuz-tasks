@@ -1,13 +1,14 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { House, ChartAreaStacked, Gear } from "@gravity-ui/icons";
+import { House, ChartAreaStacked, Gear, Code } from "@gravity-ui/icons";
 import AddTask from "./addTask";
 
 const items = [
   { label: "Главная", icon: House, path: "/" },
   { label: "Статистика", icon: ChartAreaStacked, path: "/stats" },
   { label: "Параметры", icon: Gear, path: "/settings" },
+  // { label: "Тесты", icon: Code, path: "/test" },
 ];
 
 export default function Menu() {
@@ -15,7 +16,7 @@ export default function Menu() {
   const pathname = usePathname();
 
   return (
-    <div className={`fixed bottom-0 z-50 flex justify-center w-full bg-white/20 backdrop-blur-lg border-t border-gray-200/50 py-2 pb-6 ${(pathname === "/add" || pathname.startsWith("/settings/subject") || pathname.startsWith("/task")) ? "hidden" : ""}`}>
+    <div className={`fixed bottom-0 z-50 flex justify-center w-full bg-white/20 backdrop-blur-xs border-t border-gray-200/50 py-2 pb-6 ${(pathname === "/add" || pathname.startsWith("/settings/subject") || pathname.startsWith("/task")) ? "hidden" : ""}`}>
       <div className="flex items-center gap-2">
         
         {items.map((item) => {
