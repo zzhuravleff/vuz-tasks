@@ -3,12 +3,13 @@
 import { useStore } from "@/hooks/useStore";
 import { Chip, Skeleton } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react"; // ← добавить useTransition
 
 export default function TasksList() {
     const { data, store } = useStore();
 
     const router = useRouter();
+    const [isPending, startTransition] = useTransition(); // ← добавить
 
     const [activedTasks, setActivedTasks] = useState<any[]>([]);
     const [overdueTasks24H, setOverdueTasks24H] = useState<any[]>([]);
@@ -32,6 +33,13 @@ export default function TasksList() {
         const minutes = String(date.getMinutes()).padStart(2, '0');
         
         return `${hours}:${minutes}`;
+    };
+
+    // Функция для навигации с обратной связью
+    const navigateToTask = (taskId: string) => {
+        startTransition(() => {
+            router.push(`/task/${taskId}`);
+        });
     };
 
     useEffect(() => {
@@ -63,7 +71,7 @@ export default function TasksList() {
     if (isLoading) {
     return (
         <div className="flex flex-col gap-2">
-        {[1, 2, 3].map((i) => (
+        {[1, 2].map((i) => (
             <div key={i} className="bg-white rounded-3xl p-3 animate-pulse">
                 <Skeleton className="h-6 rounded w-3/4 mb-2" />
                 <Skeleton className="h-4 rounded w-full mb-2" />
@@ -78,7 +86,13 @@ export default function TasksList() {
     <div className="flex flex-col gap-2">
         {/* Просроченные задачи */}
         {overdueTasks24H.map(task => (
-        <div key={task.id} className="bg-white border-danger/16 border-2 rounded-3xl p-3 flex flex-col gap-2 cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
+        <div 
+            key={task.id} 
+            className={`bg-white border-danger/16 border-2 rounded-3xl p-3 flex flex-col gap-2 cursor-pointer active:scale-105 transition ${
+                isPending ? 'opacity-50 pointer-events-none' : ''
+            }`} 
+            onClick={() => navigateToTask(task.id)}
+        >
             <div className="flex justify-between">
             <span className="font-medium text-xl line-clamp-2 text-danger leading-6">
                 {task.type === "Расписание" ? task.subjectName : task.title}
@@ -105,7 +119,13 @@ export default function TasksList() {
         ) : (
         <div className="flex flex-col gap-2">
             {activedTasks.map(task => (
-            <div key={task.id} className="bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition" onClick={() => {router.push(`/task/${task.id}`)}}>
+            <div 
+                key={task.id} 
+                className={`bg-white rounded-3xl p-3 gap-2 flex flex-col cursor-pointer active:scale-105 transition ${
+                    isPending ? 'opacity-50 pointer-events-none' : ''
+                }`} 
+                onClick={() => navigateToTask(task.id)}
+            >
                 {((new Date(task.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60)) < 48 && (
                 <div className="p-0 m-0">
                     <Chip color="danger" variant="soft" size="lg">Скоро</Chip>
