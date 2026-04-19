@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Button, IconChevronLeft, Input, Label, ListBox, Select, TextArea } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ScheduleRule, Task } from "@/types";
 import { TrashBin } from "@gravity-ui/icons";
 
@@ -40,6 +40,9 @@ export default function SubjectPage() {
   const [taskDescription, setTaskDescription] = useState("");
   const [customDate, setCustomDate] = useState<string>("");
   const [customTime, setCustomTime] = useState<string>("");
+
+  const [lessons, setLessons] = useState<GeneratedLesson[]>([]);
+  const [isGeneratingLessons, setIsGeneratingLessons] = useState(false);
 
   // Функция для проверки чётности недели
       const isEvenWeek = (date: Date, semesterStart: Date): boolean => {
@@ -136,39 +139,48 @@ export default function SubjectPage() {
           });
       };
   
-          // Мемоизируем сгенерированные пары для выбранной дисциплины
-          const lessons = useMemo(() => {
-              if (!selectedSubjectId) return [];
-              
-              // Генерируем все пары
-              const allLessons = generateLessonsForSubject(selectedSubjectId);
-              
-              const now = new Date();
-              
-              // Получаем ID уже занятых пар
-              const occupiedLessonIds = new Set(
-                data.tasks
-                    .filter(
-                    (task): task is Extract<Task, { type: "Расписание" }> =>
-                        task.type === "Расписание" &&
-                        task.subjectId === selectedSubjectId &&
-                        task.status === "active" &&
-                        task.id !== id
-                    )
-                    .map((task) => `${task.deadline}-${task.lessons}`)
-                );
-              
-              // Фильтруем занятые и прошедшие пары
-              return allLessons.filter(lesson => {
-                  if (occupiedLessonIds.has(lesson.id)) return false;
-                  
-                  const lessonDateTime = new Date(lesson.date);
-                  const [hours, minutes] = lesson.startTime.split(':').map(Number);
-                  lessonDateTime.setHours(hours, minutes, 0, 0);
-                  
-                  return lessonDateTime > now;
-              });
-          }, [selectedSubjectId, data]);
+      // Генерация пар для выбранной дисциплины (асинхронно, без блокировки UI)
+    useEffect(() => {
+    if (!selectedSubjectId || !data) {
+        setLessons([]);
+        return;
+    }
+
+    setIsGeneratingLessons(true);
+
+    // Откладываем генерацию в микротаск, чтобы не блокировать рендер
+    const timerId = setTimeout(() => {
+        // 1. Генерируем все пары
+        const allLessons = generateLessonsForSubject(selectedSubjectId);
+
+        // 2. Фильтруем занятые и прошедшие
+        const now = new Date();
+        const occupiedLessonIds = new Set(
+        data.tasks
+            .filter(
+            (task): task is Extract<Task, { type: "Расписание" }> =>
+                task.type === "Расписание" &&
+                task.subjectId === selectedSubjectId &&
+                task.status === "active" &&
+                task.id !== id
+            )
+            .map((task) => `${task.deadline}-${task.lessons}`)
+        );
+
+        const filtered = allLessons.filter((lesson) => {
+        if (occupiedLessonIds.has(lesson.id)) return false;
+        const lessonDateTime = new Date(lesson.date);
+        const [hours, minutes] = lesson.startTime.split(":").map(Number);
+        lessonDateTime.setHours(hours, minutes, 0, 0);
+        return lessonDateTime > now;
+        });
+
+        setLessons(filtered);
+        setIsGeneratingLessons(false);
+    }, 0);
+
+    return () => clearTimeout(timerId);
+    }, [selectedSubjectId, data, id]);
   
       // Функция для получения комбинированной даты и времени
     const getCombinedDeadline = () => {
@@ -301,16 +313,18 @@ export default function SubjectPage() {
                                 </Select.Popover>
                             </Select>
         
-                            <Select 
-                                isDisabled={!selectedSubjectId || lessons.length === 0}
-                                className="w-full" 
-                                variant="secondary" 
+                            <Select
+                                isDisabled={!selectedSubjectId || isGeneratingLessons || lessons.length === 0}
+                                className="w-full"
+                                variant="secondary"
                                 placeholder={
-                                    !selectedSubjectId 
-                                        ? "Сначала выберите дисциплину" 
-                                        : lessons.length === 0 
-                                            ? "Нет пар по расписанию" 
-                                            : "Выберите пару по расписанию"
+                                    !selectedSubjectId
+                                    ? "Сначала выберите дисциплину"
+                                    : isGeneratingLessons
+                                    ? "Загрузка пар..."
+                                    : lessons.length === 0
+                                    ? "Нет пар по расписанию"
+                                    : "Выберите пару по расписанию"
                                 }
                                 selectedKey={selectedLesson}
                                 onChange={(key) => setSelectedLesson(key as string)}

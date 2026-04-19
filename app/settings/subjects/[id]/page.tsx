@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { Button, Chip, IconChevronLeft, Input, Label, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
+import { Button, Chip, IconChevronLeft, Input, Label, Skeleton, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScheduleRule } from "@/types";
 
 const TAB_ITEMS = [
@@ -69,35 +69,49 @@ export default function SubjectPage() {
   const [typeRule, setTypeRule] = useState("Еженедельно");
   const [date, setDate] = useState("");
   const [lesson, setLesson] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortedRules, setSortedRules] = useState<ScheduleRule[]>([]);
 
   const subject = data.subjects.find((s) => s.id === id);
-  if (!subject) return <div>Discipline not found</div>;
 
-  // Сортировка: сначала по дням недели и парам, потом кастомные по датам
-  const sortedRules = [...subject.rules].sort((a, b) => {
-  const aIsCustom = a.type === "Кастом";
-  const bIsCustom = b.type === "Кастом";
-  
-  if (aIsCustom === bIsCustom) {
-    if (!aIsCustom) {
-      // Оба не кастомные - сортируем по dayOfWeek, потом по lesson
-      const aNonCustom = a as Extract<ScheduleRule, { dayOfWeek: number }>;
-      const bNonCustom = b as Extract<ScheduleRule, { dayOfWeek: number }>;
+  // Асинхронная сортировка правил (без блокировки UI)
+  useEffect(() => {
+    if (!subject) return;
+
+    const timerId = setTimeout(() => {
+      const sorted = [...subject.rules].sort((a, b) => {
+        const aIsCustom = a.type === "Кастом";
+        const bIsCustom = b.type === "Кастом";
+        
+        if (aIsCustom === bIsCustom) {
+          if (!aIsCustom) {
+            // Оба не кастомные - сортируем по dayOfWeek, потом по lesson
+            const aNonCustom = a as Extract<ScheduleRule, { dayOfWeek: number }>;
+            const bNonCustom = b as Extract<ScheduleRule, { dayOfWeek: number }>;
+            
+            if (aNonCustom.dayOfWeek !== bNonCustom.dayOfWeek) {
+              return aNonCustom.dayOfWeek - bNonCustom.dayOfWeek;
+            }
+            return (ensureLessonArray(aNonCustom.lesson)[0] ?? 0) - (ensureLessonArray(bNonCustom.lesson)[0] ?? 0);
+          } else {
+            // Оба кастомные - сортируем по date
+            const aCustom = a as Extract<ScheduleRule, { date: string }>;
+            const bCustom = b as Extract<ScheduleRule, { date: string }>;
+            return aCustom.date.localeCompare(bCustom.date);
+          }
+        }
+        // Один кастомный, другой нет - некастомный идёт первым
+        return aIsCustom ? 1 : -1;
+      });
       
-      if (aNonCustom.dayOfWeek !== bNonCustom.dayOfWeek) {
-        return aNonCustom.dayOfWeek - bNonCustom.dayOfWeek;
-      }
-      return (ensureLessonArray(aNonCustom.lesson)[0] ?? 0) - (ensureLessonArray(bNonCustom.lesson)[0] ?? 0);
-    } else {
-      // Оба кастомные - сортируем по date
-      const aCustom = a as Extract<ScheduleRule, { date: string }>;
-      const bCustom = b as Extract<ScheduleRule, { date: string }>;
-      return aCustom.date.localeCompare(bCustom.date);
-    }
-  }
-  // Один кастомный, другой нет - некастомный идёт первым
-  return aIsCustom ? 1 : -1;
-});
+      setSortedRules(sorted);
+      setIsLoading(false);
+    }, 0);
+
+    return () => clearTimeout(timerId);
+  }, [subject]);
+
+  if (!subject) return <div>Discipline not found</div>;
 
   return (
     <div className="flex flex-col gap-4 w-full">
@@ -111,49 +125,70 @@ export default function SubjectPage() {
         </h1>
 
         {/* список */}
-        {sortedRules.length === 0 ? (
+        {!isLoading && sortedRules.length === 0 ? (
           <div className="w-full text-center font-regular text-lg">
             Пока пары не добавлены...
           </div>
         ) : null}
+
         <div className="flex flex-col gap-2">
-            {sortedRules.map((r) => (
-                <div key={r.id} className="flex items-center gap-2">
-                    {r.type != "Кастом" ? (
-                        <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full cursor-pointer" onClick={() => {
-                          if (confirm("Вы уверены, что хотите удалить эту пару?")) {
-                            store.deleteRule(subject.id, r.id);
-                          }
-                        }}>
-                            <div className="flex justify-between items-center gap-2">
-                                <span className="font-medium text-xl">{DAYS.find(d => d.id === r.dayOfWeek)?.full}</span>
-                                <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {ensureLessonArray(r.lesson).sort((a, b) => a - b).map((l) => (
-                                <Chip key={l} size="lg">{l} пара</Chip>
-                              ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full cursor-pointer" onClick={() => {
-                          if (confirm("Вы уверены, что хотите удалить эту пару?")) {
-                            store.deleteRule(subject.id, r.id);
-                          }
-                        }}>
-                            <div className="flex justify-between items-center gap-2">
-                                <span className="font-medium text-xl">{formatDate(r.date)}</span>
-                                <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {ensureLessonArray(r.lesson).map((l) => (
-                                <Chip key={l} size="lg">{l} пара</Chip>
-                              ))}
-                            </div>
-                        </div>
-                    )}
+          {isLoading ? (
+            // Скелетон для списка правил
+            <>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full animate-pulse">
+                    <div className="flex justify-between items-center gap-2">
+                      <Skeleton className="h-7 rounded w-32" />
+                      <Skeleton className="h-8 rounded w-24" />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Skeleton className="h-8 rounded w-16" />
+                      <Skeleton className="h-8 rounded w-16" />
+                    </div>
+                  </div>
                 </div>
-            ))}
+              ))}
+            </>
+          ) : (
+            sortedRules.map((r) => (
+              <div key={r.id} className="flex items-center gap-2">
+                {r.type != "Кастом" ? (
+                  <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full cursor-pointer" onClick={() => {
+                    if (confirm("Вы уверены, что хотите удалить эту пару?")) {
+                      store.deleteRule(subject.id, r.id);
+                    }
+                  }}>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="font-medium text-xl">{DAYS.find(d => d.id === r.dayOfWeek)?.full}</span>
+                      <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {ensureLessonArray(r.lesson).sort((a, b) => a - b).map((l) => (
+                        <Chip key={l} size="lg">{l} пара</Chip>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 p-3 bg-white rounded-3xl w-full cursor-pointer" onClick={() => {
+                    if (confirm("Вы уверены, что хотите удалить эту пару?")) {
+                      store.deleteRule(subject.id, r.id);
+                    }
+                  }}>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="font-medium text-xl">{formatDate(r.date)}</span>
+                      <Chip size="lg" variant="soft" color={getColorByType(r.type)}>{r.type}</Chip>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {ensureLessonArray(r.lesson).map((l) => (
+                        <Chip key={l} size="lg">{l} пара</Chip>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {/* добавление пары */}

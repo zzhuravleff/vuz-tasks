@@ -1,9 +1,9 @@
 "use client";
 
 import { useStore } from "@/hooks/useStore";
-import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
+import { Input, Button, Label, ListBox, Avatar, Skeleton } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { version } from "../../lib/version"
 import DataActions from "@/components/dataActions";
 
@@ -15,9 +15,26 @@ export default function SettingsPage() {
     const [startDate, setStartDate] = useState("");
     const [weeks, setWeeks] = useState(0);
 
+    const [isLoading, setIsLoading] = useState(true);
+    const [sortedSubjects, setSortedSubjects] = useState<any[]>([]);
+
     const router = useRouter();
 
     const colors = ["accent", "default", "success", "warning", "danger"] as const;
+
+    // Асинхронная сортировка дисциплин (без блокировки UI)
+    useEffect(() => {
+    if (!data) return;
+
+    // Откладываем сортировку в микротаск
+    const timerId = setTimeout(() => {
+        const sorted = [...data.subjects].sort((a, b) => a.name.localeCompare(b.name));
+        setSortedSubjects(sorted);
+        setIsLoading(false);
+    }, 0);
+
+    return () => clearTimeout(timerId);
+    }, [data]);
 
     return (
     <div className="flex flex-col gap-4" suppressHydrationWarning={false}>
@@ -89,16 +106,24 @@ export default function SettingsPage() {
                 router.push(`/settings/subjects/${key}`);
             }}
             >
-            {data.subjects.sort((a, b) => a.name.localeCompare(b.name)).map((s, i) => (
-                    <ListBox.Item key={s.id} id={s.id} className="flex justify-between items-center">
-                        <div className="flex gap-2 items-center">
-                            <Avatar variant="soft" color={colors[i % colors.length]} className="shrink-0">
-                                <Avatar.Fallback className="uppercase">{s.name[0]}{s.name.split(" ").length > 1 ? s.name.split(" ")[1][0] : ""}</Avatar.Fallback>
-                            </Avatar>
-                            <span>{s.name}</span>
-                        </div>
-                    </ListBox.Item>
-            ))}
+            {isLoading ? (
+                // Скелетон для списка дисциплин
+                <Skeleton className="h-8" />
+            ) : (
+                sortedSubjects.map((s, i) => (
+                <ListBox.Item key={s.id} id={s.id} className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center">
+                    <Avatar variant="soft" color={colors[i % colors.length]} className="shrink-0">
+                        <Avatar.Fallback className="uppercase">
+                        {s.name[0]}
+                        {s.name.split(" ").length > 1 ? s.name.split(" ")[1][0] : ""}
+                        </Avatar.Fallback>
+                    </Avatar>
+                    <span>{s.name}</span>
+                    </div>
+                </ListBox.Item>
+                ))
+            )}
             </ListBox>
         </div>
 

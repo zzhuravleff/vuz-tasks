@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Task, ScheduleRule } from "@/types";
 
 const TAB_ITEMS = [
@@ -40,6 +40,10 @@ export default function SubjectPage() {
     const [taskDescription, setTaskDescription] = useState("");
     const [customDate, setCustomDate] = useState<string>("");
     const [customTime, setCustomTime] = useState<string>("");
+
+    const [isGeneratingLessons, setIsGeneratingLessons] = useState(false);
+    const [lessons, setLessons] = useState<GeneratedLesson[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const selectedSubject = data.subjects.find(s => s.id === selectedSubjectId);
 
@@ -138,37 +142,52 @@ export default function SubjectPage() {
         });
     };
 
-        // Мемоизируем сгенерированные пары для выбранной дисциплины
-        const lessons = useMemo(() => {
-            if (!selectedSubjectId) return [];
-            
-            // Генерируем все пары
-            const allLessons = generateLessonsForSubject(selectedSubjectId);
-            
-            const now = new Date();
-            
-            // Получаем ID уже занятых пар
-            const occupiedLessonIds = new Set(
-                data.tasks
-                    .filter((task): task is Extract<Task, { type: "Расписание" }> => 
-                        task.type === "Расписание" && 
-                        task.subjectId === selectedSubjectId && 
-                        task.status === "active"
-                    )
-                    .map(task => `${task.deadline}-${task.lessons}`) // Теперь формат совпадает с lesson.id
-            );
-            
-            // Фильтруем занятые и прошедшие пары
-            return allLessons.filter(lesson => {
-                if (occupiedLessonIds.has(lesson.id)) return false;
-                
-                const lessonDateTime = new Date(lesson.date);
-                const [hours, minutes] = lesson.startTime.split(':').map(Number);
-                lessonDateTime.setHours(hours, minutes, 0, 0);
-                
-                return lessonDateTime > now;
-            });
-        }, [selectedSubjectId, data]);
+    // Асинхронная генерация пар для выбранной дисциплины
+    useEffect(() => {
+    if (!selectedSubjectId || !data) {
+        setLessons([]);
+        setIsLoading(false);
+        return;
+    }
+
+    setIsGeneratingLessons(true);
+
+    // Откладываем генерацию в микротаск, чтобы не блокировать рендер
+    const timerId = setTimeout(() => {
+        // 1. Генерируем все пары
+        const allLessons = generateLessonsForSubject(selectedSubjectId);
+        
+        const now = new Date();
+        
+        // 2. Получаем ID уже занятых пар
+        const occupiedLessonIds = new Set(
+        data.tasks
+            .filter((task): task is Extract<Task, { type: "Расписание" }> => 
+            task.type === "Расписание" && 
+            task.subjectId === selectedSubjectId && 
+            task.status === "active"
+            )
+            .map(task => `${task.deadline}-${task.lessons}`)
+        );
+        
+        // 3. Фильтруем занятые и прошедшие пары
+        const filtered = allLessons.filter(lesson => {
+        if (occupiedLessonIds.has(lesson.id)) return false;
+        
+        const lessonDateTime = new Date(lesson.date);
+        const [hours, minutes] = lesson.startTime.split(':').map(Number);
+        lessonDateTime.setHours(hours, minutes, 0, 0);
+        
+        return lessonDateTime > now;
+        });
+        
+        setLessons(filtered);
+        setIsGeneratingLessons(false);
+        setIsLoading(false);
+    }, 0);
+
+    return () => clearTimeout(timerId);
+    }, [selectedSubjectId, data]);
 
     // Функция для получения комбинированной даты и времени
     const getCombinedDeadline = () => {
@@ -278,15 +297,17 @@ export default function SubjectPage() {
                     </Select>
 
                     <Select 
-                        isDisabled={!selectedSubjectId || lessons.length === 0}
+                        isDisabled={!selectedSubjectId || isGeneratingLessons || lessons.length === 0}
                         className="w-full" 
                         variant="secondary" 
                         placeholder={
                             !selectedSubjectId 
-                                ? "Сначала выберите дисциплину" 
-                                : lessons.length === 0 
-                                    ? "Нет пар по расписанию" 
-                                    : "Выберите пару по расписанию"
+                            ? "Сначала выберите дисциплину" 
+                            : isGeneratingLessons
+                            ? "Загрузка пар..."
+                            : lessons.length === 0 
+                                ? "Нет пар по расписанию" 
+                                : "Выберите пару по расписанию"
                         }
                         selectedKey={selectedLesson}
                         onChange={(key) => setSelectedLesson(key as string)}

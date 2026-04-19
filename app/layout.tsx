@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="кг"
+      lang="ru"
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="flex flex-col items-center min-h-full bg-[#f5f5f5] font-inter">
