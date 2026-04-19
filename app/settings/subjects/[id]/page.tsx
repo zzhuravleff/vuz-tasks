@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Button, Chip, IconChevronLeft, Input, Label, Tabs, ToggleButton, ToggleButtonGroup, ToggleButtonGroupSeparator } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ScheduleRule } from "@/types";
 
 const TAB_ITEMS = [
@@ -69,13 +69,6 @@ export default function SubjectPage() {
   const [typeRule, setTypeRule] = useState("Еженедельно");
   const [date, setDate] = useState("");
   const [lesson, setLesson] = useState<Set<string>>(new Set());
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted || !data) return null;
 
   const subject = data.subjects.find((s) => s.id === id);
   if (!subject) return <div>Discipline not found</div>;

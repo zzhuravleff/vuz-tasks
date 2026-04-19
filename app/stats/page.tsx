@@ -73,8 +73,6 @@ export default function StatsPage() {
     </div>
   );
 
-  console.log(new Date().toISOString());
-
   return (
 
     <div className="flex flex-col gap-4">

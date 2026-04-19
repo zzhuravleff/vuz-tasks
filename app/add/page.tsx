@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Task, ScheduleRule } from "@/types";
 
 const TAB_ITEMS = [
@@ -33,7 +33,6 @@ interface GeneratedLesson {
 export default function SubjectPage() {
     const router = useRouter();
     const { data, store } = useStore();
-    const [isMounted, setIsMounted] = useState(false);
     const [typeTask, setTypeTask] = useState<"Расписание" | "Кастомная">("Расписание");
     const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
     const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
@@ -43,10 +42,6 @@ export default function SubjectPage() {
     const [customTime, setCustomTime] = useState<string>("");
 
     const selectedSubject = data.subjects.find(s => s.id === selectedSubjectId);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
 
     // Функция для проверки чётности недели
     const isEvenWeek = (date: Date, semesterStart: Date): boolean => {
@@ -180,8 +175,6 @@ export default function SubjectPage() {
         if (!customDate || !customTime) return null;
         return `${customDate}T${customTime}:00`;
     };
-
-    if (!isMounted || !data) return null;
 
     return (
         <div className="flex flex-col gap-4 w-full">

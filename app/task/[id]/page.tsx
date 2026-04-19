@@ -41,13 +41,6 @@ export default function SubjectPage() {
   const [customDate, setCustomDate] = useState<string>("");
   const [customTime, setCustomTime] = useState<string>("");
 
-  const [isMounted, setIsMounted] = useState(false);
-  
-  useEffect(() => {
-      setIsMounted(true);
-  }, []);
-
-  
   // Функция для проверки чётности недели
       const isEvenWeek = (date: Date, semesterStart: Date): boolean => {
           const diffTime = Math.abs(date.getTime() - semesterStart.getTime());
@@ -233,8 +226,6 @@ export default function SubjectPage() {
     task?.type === "Расписание"
         ? (!selectedLesson || !isScheduleChanged)
         : (!hasRequiredFields || !isCustomChanged);
-
-  if (!isMounted || !data) return null;
 
   if (!task) return <div>Not found</div>;
 

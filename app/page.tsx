@@ -3,19 +3,11 @@
 import { useStore } from "@/hooks/useStore";
 import { Chip } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function TasksList() {
     const { data, store } = useStore();
-    const [isMounted, setIsMounted] = useState(false);
 
     const router = useRouter();
-    
-    useEffect(() => {
-      setIsMounted(true);
-    }, []);
-
-    if (!isMounted || !data) return null;
 
     const activedTasks = data.tasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()).filter((t) => (t.status === "active" && new Date(t.deadline) > new Date()));
     

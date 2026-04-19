@@ -3,7 +3,7 @@
 import { useStore } from "@/hooks/useStore";
 import { Input, Button, Label, ListBox, Avatar } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { version } from "../../lib/version"
 import DataActions from "@/components/dataActions";
 
@@ -18,14 +18,6 @@ export default function SettingsPage() {
     const router = useRouter();
 
     const colors = ["accent", "default", "success", "warning", "danger"] as const;
-
-    const [isMounted, setIsMounted] = useState(false);
-    
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-    
-    if (!isMounted || !data) return null;
 
     return (
     <div className="flex flex-col gap-4" suppressHydrationWarning={false}>
