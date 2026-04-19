@@ -1,406 +1,420 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea } from "@heroui/react";
+import { Button, IconChevronLeft, Input, Label, ListBox, Select, Tabs, TextArea, Spinner } from "@heroui/react";
 import { useStore } from "@/hooks/useStore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Task, ScheduleRule } from "@/types";
 
 const TAB_ITEMS = [
-    { label: "Расписание" },
-    { label: "Кастомная" },
+  { label: "Расписание" },
+  { label: "Кастомная" },
 ] as const;
 
 // Константы для времени пар
 const LESSON_TIMES: Record<number, string> = {
-    1: "9:00",
-    2: "10:30",
-    3: "12:40",
-    4: "14:20",
-    5: "16:20",
-    6: "18:00",
+  1: "9:00",
+  2: "10:30",
+  3: "12:40",
+  4: "14:20",
+  5: "16:20",
+  6: "18:00",
 };
 
 interface GeneratedLesson {
-    id: string;
-    date: Date;
-    lessonNumber: number;
-    startTime: string;
-    displayText: string;
-    dateISO: string;
+  id: string;
+  date: Date;
+  lessonNumber: number;
+  startTime: string;
+  displayText: string;
+  dateISO: string;
 }
 
-export default function SubjectPage() {
-    const router = useRouter();
-    const { data, store } = useStore();
-    const [typeTask, setTypeTask] = useState<"Расписание" | "Кастомная">("Расписание");
-    const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
-    const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
-    const [taskTitle, setTaskTitle] = useState("");
-    const [taskDescription, setTaskDescription] = useState("");
-    const [customDate, setCustomDate] = useState<string>("");
-    const [customTime, setCustomTime] = useState<string>("");
+export default function AddTaskPage() {
+  const router = useRouter();
+  const { data, store } = useStore();
+  
+  // Состояния формы
+  const [typeTask, setTypeTask] = useState<"Расписание" | "Кастомная">("Расписание");
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [customDate, setCustomDate] = useState<string>("");
+  const [customTime, setCustomTime] = useState<string>("");
+  
+  // Состояния данных
+  const [lessons, setLessons] = useState<GeneratedLesson[]>([]);
+  const [isGeneratingLessons, setIsGeneratingLessons] = useState(false);
+  
+  // Для действий
+  const [isPending, startTransition] = useTransition();
 
-    const [isGeneratingLessons, setIsGeneratingLessons] = useState(false);
-    const [lessons, setLessons] = useState<GeneratedLesson[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+  const selectedSubject = data?.subjects?.find(s => s.id === selectedSubjectId);
 
-    const selectedSubject = data.subjects.find(s => s.id === selectedSubjectId);
+  // Функция для проверки чётности недели
+  const isEvenWeek = (date: Date, semesterStart: Date): boolean => {
+    const diffTime = Math.abs(date.getTime() - semesterStart.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.ceil(diffDays / 7);
+    return weekNumber % 2 === 0;
+  };
 
-    // Функция для проверки чётности недели
-    const isEvenWeek = (date: Date, semesterStart: Date): boolean => {
-        const diffTime = Math.abs(date.getTime() - semesterStart.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const weekNumber = Math.ceil(diffDays / 7);
-        return weekNumber % 2 === 0;
-    };
+  // Функция для генерации всех дат в семестре по правилу
+  const generateDatesForRule = (rule: ScheduleRule, semesterStart: Date, semesterEnd: Date): Date[] => {
+    const dates: Date[] = [];
+    
+    if (rule.type === "Кастом") {
+      const customDate = new Date(rule.date);
+      if (customDate >= semesterStart && customDate <= semesterEnd) {
+        dates.push(customDate);
+      }
+      return dates;
+    }
+    
+    let currentDate = new Date(semesterStart);
+    
+    while (currentDate.getDay() !== rule.dayOfWeek && currentDate <= semesterEnd) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    while (currentDate <= semesterEnd) {
+      let shouldInclude = true;
+      
+      if (rule.type === "Чёт") {
+        shouldInclude = isEvenWeek(currentDate, semesterStart);
+      } else if (rule.type === "Нечёт") {
+        shouldInclude = !isEvenWeek(currentDate, semesterStart);
+      }
+      
+      if (shouldInclude) {
+        dates.push(new Date(currentDate));
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+    
+    return dates;
+  };
 
-    // Функция для генерации всех дат в семестре по правилу
-    const generateDatesForRule = (rule: ScheduleRule, semesterStart: Date, semesterEnd: Date): Date[] => {
-        const dates: Date[] = [];
-        
-        if (rule.type === "Кастом") {
-            const customDate = new Date(rule.date);
-            if (customDate >= semesterStart && customDate <= semesterEnd) {
-                dates.push(customDate);
-            }
-            return dates;
-        }
-        
-        let currentDate = new Date(semesterStart);
-        
-        while (currentDate.getDay() !== rule.dayOfWeek && currentDate <= semesterEnd) {
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        
-        while (currentDate <= semesterEnd) {
-            let shouldInclude = true;
-            
-            if (rule.type === "Чёт") {
-                shouldInclude = isEvenWeek(currentDate, semesterStart);
-            } else if (rule.type === "Нечёт") {
-                shouldInclude = !isEvenWeek(currentDate, semesterStart);
-            }
-            
-            if (shouldInclude) {
-                dates.push(new Date(currentDate));
-            }
-            
-            currentDate.setDate(currentDate.getDate() + 7);
-        }
-        
-        return dates;
-    };
+  // Функция для генерации всех пар по выбранной дисциплине
+  const generateLessonsForSubject = (subjectId: string): GeneratedLesson[] => {
+    const subject = data.subjects.find(s => s.id === subjectId);
+    if (!subject || !subject.rules) return [];
 
-    // Функция для генерации всех пар по выбранной дисциплине
-    const generateLessonsForSubject = (subjectId: string): GeneratedLesson[] => {
-        const subject = data.subjects.find(s => s.id === subjectId);
-        if (!subject || !subject.rules) return [];
+    const lessons: GeneratedLesson[] = [];
+    const semesterStart = new Date(data.semester.startDate);
+    const semesterEnd = new Date(semesterStart);
+    semesterEnd.setDate(semesterEnd.getDate() + (data.semester.weeks * 7));
 
-        const lessons: GeneratedLesson[] = [];
-        const semesterStart = new Date(data.semester.startDate);
-        const semesterEnd = new Date(semesterStart);
-        semesterEnd.setDate(semesterEnd.getDate() + (data.semester.weeks * 7));
-
-        subject.rules.forEach((rule) => {
-            const dates = generateDatesForRule(rule, semesterStart, semesterEnd);
-            
-            dates.forEach((date) => {
-                rule.lesson.forEach((lessonNumber) => {
-                    const timeStr = LESSON_TIMES[lessonNumber];
-                    const [hours, minutes] = timeStr.split(':').map(Number);
-                    
-                    // Создаём дату
-                    const lessonDate = new Date(date);
-                    lessonDate.setHours(hours, minutes, 0, 0);
-                    
-                    // 🔥 ФОРМИРУЕМ ЛОКАЛЬНУЮ СТРОКУ (как в кастомных задачах)
-                    const year = lessonDate.getFullYear();
-                    const month = String(lessonDate.getMonth() + 1).padStart(2, '0');
-                    const day = String(lessonDate.getDate()).padStart(2, '0');
-                    const hour = String(lessonDate.getHours()).padStart(2, '0');
-                    const minute = String(lessonDate.getMinutes()).padStart(2, '0');
-                    const localDateTimeString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                    
-                    lessons.push({
-                        id: `${localDateTimeString}-${lessonNumber}`,
-                        date: lessonDate,
-                        lessonNumber: lessonNumber,
-                        startTime: timeStr,
-                        displayText: `${date.toLocaleDateString()} — ${lessonNumber} пара (${timeStr})`,
-                        dateISO: localDateTimeString,
-                    });
-                });
-            });
+    subject.rules.forEach((rule) => {
+      const dates = generateDatesForRule(rule, semesterStart, semesterEnd);
+      
+      dates.forEach((date) => {
+        rule.lesson.forEach((lessonNumber) => {
+          const timeStr = LESSON_TIMES[lessonNumber];
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          
+          const lessonDate = new Date(date);
+          lessonDate.setHours(hours, minutes, 0, 0);
+          
+          const year = lessonDate.getFullYear();
+          const month = String(lessonDate.getMonth() + 1).padStart(2, '0');
+          const day = String(lessonDate.getDate()).padStart(2, '0');
+          const hour = String(lessonDate.getHours()).padStart(2, '0');
+          const minute = String(lessonDate.getMinutes()).padStart(2, '0');
+          const localDateTimeString = `${year}-${month}-${day}T${hour}:${minute}:00`;
+          
+          lessons.push({
+            id: `${localDateTimeString}-${lessonNumber}`,
+            date: lessonDate,
+            lessonNumber: lessonNumber,
+            startTime: timeStr,
+            displayText: `${date.toLocaleDateString()} — ${lessonNumber} пара (${timeStr})`,
+            dateISO: localDateTimeString,
+          });
         });
-        
-        return lessons.sort((a, b) => {
-            if (a.date.getTime() !== b.date.getTime()) {
-                return a.date.getTime() - b.date.getTime();
-            }
-            return a.lessonNumber - b.lessonNumber;
-        });
-    };
+      });
+    });
+    
+    return lessons.sort((a, b) => {
+      if (a.date.getTime() !== b.date.getTime()) {
+        return a.date.getTime() - b.date.getTime();
+      }
+      return a.lessonNumber - b.lessonNumber;
+    });
+  };
 
-    // Асинхронная генерация пар для выбранной дисциплины
-    useEffect(() => {
+  // Асинхронная генерация пар
+  useEffect(() => {
     if (!selectedSubjectId || !data) {
-        setLessons([]);
-        setIsLoading(false);
-        return;
+      setLessons([]);
+      return;
     }
 
     setIsGeneratingLessons(true);
 
-    // Откладываем генерацию в микротаск, чтобы не блокировать рендер
     const timerId = setTimeout(() => {
-        // 1. Генерируем все пары
-        const allLessons = generateLessonsForSubject(selectedSubjectId);
-        
-        const now = new Date();
-        
-        // 2. Получаем ID уже занятых пар
-        const occupiedLessonIds = new Set(
+      const allLessons = generateLessonsForSubject(selectedSubjectId);
+      const now = new Date();
+      
+      const occupiedLessonIds = new Set(
         data.tasks
-            .filter((task): task is Extract<Task, { type: "Расписание" }> => 
+          .filter((task): task is Extract<Task, { type: "Расписание" }> => 
             task.type === "Расписание" && 
             task.subjectId === selectedSubjectId && 
             task.status === "active"
-            )
-            .map(task => `${task.deadline}-${task.lessons}`)
-        );
-        
-        // 3. Фильтруем занятые и прошедшие пары
-        const filtered = allLessons.filter(lesson => {
+          )
+          .map(task => `${task.deadline}-${task.lessons}`)
+      );
+      
+      const filtered = allLessons.filter(lesson => {
         if (occupiedLessonIds.has(lesson.id)) return false;
-        
         const lessonDateTime = new Date(lesson.date);
         const [hours, minutes] = lesson.startTime.split(':').map(Number);
         lessonDateTime.setHours(hours, minutes, 0, 0);
-        
         return lessonDateTime > now;
-        });
-        
-        setLessons(filtered);
-        setIsGeneratingLessons(false);
-        setIsLoading(false);
+      });
+      
+      setLessons(filtered);
+      setIsGeneratingLessons(false);
     }, 0);
 
     return () => clearTimeout(timerId);
-    }, [selectedSubjectId, data]);
+  }, [selectedSubjectId, data]);
 
-    // Функция для получения комбинированной даты и времени
-    const getCombinedDeadline = () => {
-        if (!customDate || !customTime) return null;
-        return `${customDate}T${customTime}:00`;
-    };
+  // Функция для получения комбинированной даты и времени
+  const getCombinedDeadline = () => {
+    if (!customDate || !customTime) return null;
+    return `${customDate}T${customTime}:00`;
+  };
 
+  // Создание задачи
+  const handleCreateTask = () => {
+    startTransition(() => {
+      if (typeTask === "Расписание") {
+        const selectedLessonData = lessons.find(l => l.id === selectedLesson);
+        if (!selectedLessonData) return;
+        
+        store.addTask({
+          id: crypto.randomUUID(),
+          type: "Расписание",
+          subjectId: selectedSubjectId!,
+          subjectName: selectedSubject?.name || "",
+          deadline: selectedLessonData.dateISO,
+          lessons: selectedLessonData.lessonNumber,
+          description: taskDescription || undefined,
+          status: "active",
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        const deadline = getCombinedDeadline();
+        if (!deadline) return;
+        
+        store.addTask({
+          id: crypto.randomUUID(),
+          type: "Кастомная",
+          title: taskTitle,
+          description: taskDescription || undefined,
+          deadline: deadline,
+          status: "active",
+          createdAt: new Date().toISOString(),
+        });
+      }
+      
+      router.back();
+    });
+  };
+
+  // Проверка возможности создания
+  const canCreate = typeTask === "Расписание" 
+    ? !!selectedLesson 
+    : !!taskTitle.trim() && !!customDate && !!customTime;
+
+  // Загрузка данных
+  if (!data) {
     return (
-        <div className="flex flex-col gap-4 w-full">
-            <Button variant="tertiary" className="fixed" onPress={() => router.back()}>
-                <IconChevronLeft className="size-4" />
-                Назад
-            </Button>
-
-            <h1 className="text-2xl font-medium text-center mt-12">
-                Новая задача
-            </h1>
-
-            {typeTask === "Кастомная" && (
-                <div className="flex flex-col gap-2">
-                    <Label isRequired>Название задачи</Label>
-                    <Input 
-                        variant="secondary"
-                        placeholder="Название задачи"
-                        value={taskTitle}
-                        onChange={(e) => setTaskTitle(e.target.value)}
-                    />
-                </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-                <Label>Описание задачи</Label>
-                <TextArea
-                    rows={6} 
-                    variant="secondary"
-                    disabled={data.subjects.length === 0 && typeTask === "Расписание"} 
-                    placeholder={
-                            (data.subjects.length === 0 && typeTask === "Расписание") 
-                                ? "Нет доступных дисциплин" 
-                                : "Введите описание вашей задачи"
-                        }
-                    value={taskDescription}
-                    onChange={(e) => setTaskDescription(e.target.value)}
-                />
-            </div>
-
-            <Tabs 
-                selectedKey={typeTask}
-                onSelectionChange={(t) => {
-                    setTypeTask(t as "Расписание" | "Кастомная");
-                    // Сбрасываем специфичные для типа значения при переключении
-                    if (t === "Расписание") {
-                        setCustomDate("");
-                        setCustomTime("");
-                    } else {
-                        setSelectedSubjectId(null);
-                        setSelectedLesson(null);
-                    }
-                }} 
-                className="w-full"
-            >
-                <Tabs.ListContainer>
-                    <Tabs.List>
-                        {TAB_ITEMS.map((tab) => (
-                            <Tabs.Tab key={tab.label} id={tab.label}>
-                                {tab.label}
-                                <Tabs.Indicator />
-                            </Tabs.Tab>
-                        ))}
-                    </Tabs.List>
-                </Tabs.ListContainer>
-            </Tabs>
-
-            {/* Блок для задач по расписанию */}
-            {typeTask === "Расписание" ? (
-                <>
-                    <Select
-                        isDisabled={data.subjects.length === 0} 
-                        className="w-full" 
-                        variant="secondary" 
-                        placeholder={
-                            data.subjects.length === 0 
-                                ? "Нет доступных дисциплин" 
-                                : "Выберите одну дисциплину"
-                        }
-                        selectedKey={selectedSubjectId}
-                        onChange={(key) => {
-                            setSelectedSubjectId(key as string);
-                            setSelectedLesson(null);
-                        }}
-                    >
-                        <Label isRequired>Выбрать дисциплину</Label>
-                        <Select.Trigger>
-                            <Select.Value />
-                            <Select.Indicator />
-                        </Select.Trigger>
-                        <Select.Popover>
-                            <ListBox>
-                                {data.subjects.map((subject) => (
-                                    <ListBox.Item key={subject.id} id={subject.id}>
-                                        {subject.name}
-                                        <ListBox.ItemIndicator />
-                                    </ListBox.Item>
-                                ))}
-                            </ListBox>
-                        </Select.Popover>
-                    </Select>
-
-                    <Select 
-                        isDisabled={!selectedSubjectId || isGeneratingLessons || lessons.length === 0}
-                        className="w-full" 
-                        variant="secondary" 
-                        placeholder={
-                            !selectedSubjectId 
-                            ? "Сначала выберите дисциплину" 
-                            : isGeneratingLessons
-                            ? "Загрузка пар..."
-                            : lessons.length === 0 
-                                ? "Нет пар по расписанию" 
-                                : "Выберите пару по расписанию"
-                        }
-                        selectedKey={selectedLesson}
-                        onChange={(key) => setSelectedLesson(key as string)}
-                    >
-                        <Label isRequired>Выбрать пару</Label>
-                        <Select.Trigger>
-                            <Select.Value />
-                            <Select.Indicator />
-                        </Select.Trigger>
-                        <Select.Popover>
-                            <ListBox>
-                                {lessons.map((lesson) => (
-                                    <ListBox.Item key={lesson.id} id={lesson.id}>
-                                        {lesson.displayText}
-                                        <ListBox.ItemIndicator />
-                                    </ListBox.Item>
-                                ))}
-                            </ListBox>
-                        </Select.Popover>
-                    </Select>
-                </>
-            ) :
-
-            
-             (
-                <div className="flex flex-col gap-4 w-full">
-                    <div className="flex flex-col gap-2 w-full">
-                        <Label isRequired>Дата дедлайна</Label>
-                        <Input 
-                            type="date"
-                            variant="secondary"
-                            value={customDate}
-                            onChange={(e) => setCustomDate(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2 w-full">
-                        <Label isRequired>Время дедлайна</Label>
-                        <Input 
-                            type="time"
-                            variant="secondary"
-                            value={customTime}
-                            onChange={(e) => setCustomTime(e.target.value)}
-                        />
-                    </div>
-                </div>
-            )}
-
-            <Button 
-                className="w-full" 
-                size="lg" 
-                isDisabled={
-                    typeTask === "Расписание" 
-                        ? !selectedLesson 
-                        : !taskTitle.trim() || !customDate || !customTime
-                }
-                onPress={() => {
-                    if (typeTask === "Расписание") {
-                        const selectedLessonData = lessons.find(l => l.id === selectedLesson);
-                        if (!selectedLessonData) return;
-                        
-                        store.addTask({
-                            id: crypto.randomUUID(),
-                            type: "Расписание",
-                            subjectId: selectedSubjectId!,
-                            subjectName: selectedSubject?.name || "", // 🔥 СОХРАНЯЕМ НАЗВАНИЕ
-                            deadline: selectedLessonData.dateISO,
-                            lessons: selectedLessonData.lessonNumber,
-                            description: taskDescription || undefined,
-                            status: "active",
-                            createdAt: new Date().toISOString(),
-                        });
-                    } else {
-                        const deadline = getCombinedDeadline();
-                        if (!deadline) return;
-                        
-                        store.addTask({
-                            id: crypto.randomUUID(),
-                            type: "Кастомная",
-                            title: taskTitle,
-                            description: taskDescription || undefined,
-                            deadline: deadline,
-                            status: "active",
-                            createdAt: new Date().toISOString(),
-                        });
-                    }
-                    
-                    router.back();
-                }}
-            >
-                Создать задачу
-            </Button>
-        </div>
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="lg" />
+      </div>
     );
+  }
+
+  return (
+    <div className="flex flex-col gap-4 w-full pb-8">
+      <Button variant="tertiary" className="fixed" onPress={() => router.back()}>
+        <IconChevronLeft className="size-4" />
+        Назад
+      </Button>
+
+      <h1 className="text-2xl font-medium text-center mt-12">
+        Новая задача
+      </h1>
+
+      {/* Название задачи (только для кастомных) */}
+      {typeTask === "Кастомная" && (
+        <div className="flex flex-col gap-2">
+          <Label isRequired>Название задачи</Label>
+          <Input 
+            variant="secondary"
+            placeholder="Название задачи"
+            value={taskTitle}
+            onChange={(e) => setTaskTitle(e.target.value)}
+          />
+        </div>
+      )}
+
+      {/* Описание задачи */}
+      <div className="flex flex-col gap-2">
+        <Label>Описание задачи</Label>
+        <TextArea
+          rows={6} 
+          variant="secondary"
+          disabled={data.subjects.length === 0 && typeTask === "Расписание"} 
+          placeholder={
+            (data.subjects.length === 0 && typeTask === "Расписание") 
+              ? "Нет доступных дисциплин" 
+              : "Введите описание вашей задачи"
+          }
+          value={taskDescription}
+          onChange={(e) => setTaskDescription(e.target.value)}
+        />
+      </div>
+
+      {/* Tabs */}
+      <Tabs 
+        selectedKey={typeTask}
+        onSelectionChange={(t) => {
+          setTypeTask(t as "Расписание" | "Кастомная");
+          if (t === "Расписание") {
+            setCustomDate("");
+            setCustomTime("");
+          } else {
+            setSelectedSubjectId(null);
+            setSelectedLesson(null);
+          }
+        }} 
+        className="w-full"
+      >
+        <Tabs.ListContainer>
+          <Tabs.List>
+            {TAB_ITEMS.map((tab) => (
+              <Tabs.Tab key={tab.label} id={tab.label}>
+                {tab.label}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs.ListContainer>
+      </Tabs>
+
+      {/* Блок для задач по расписанию */}
+      {typeTask === "Расписание" ? (
+        <>
+          <Select
+            isDisabled={data.subjects.length === 0} 
+            className="w-full" 
+            variant="secondary" 
+            placeholder={
+              data.subjects.length === 0 
+                ? "Нет доступных дисциплин" 
+                : "Выберите одну дисциплину"
+            }
+            selectedKey={selectedSubjectId}
+            onChange={(key) => {
+              setSelectedSubjectId(key as string);
+              setSelectedLesson(null);
+            }}
+          >
+            <Label isRequired>Выбрать дисциплину</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {data.subjects.map((subject) => (
+                  <ListBox.Item key={subject.id} id={subject.id}>
+                    {subject.name}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <Select 
+            isDisabled={!selectedSubjectId || isGeneratingLessons || lessons.length === 0}
+            className="w-full" 
+            variant="secondary" 
+            placeholder={
+              !selectedSubjectId 
+                ? "Сначала выберите дисциплину" 
+                : isGeneratingLessons
+                ? "Загрузка пар..."
+                : lessons.length === 0 
+                  ? "Нет пар по расписанию" 
+                  : "Выберите пару по расписанию"
+            }
+            selectedKey={selectedLesson}
+            onChange={(key) => setSelectedLesson(key as string)}
+          >
+            <Label isRequired>Выбрать пару</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {lessons.map((lesson) => (
+                  <ListBox.Item key={lesson.id} id={lesson.id}>
+                    {lesson.displayText}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+        </>
+      ) : (
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col gap-2 w-full">
+            <Label isRequired>Дата дедлайна</Label>
+            <Input 
+              type="date"
+              variant="secondary"
+              value={customDate}
+              onChange={(e) => setCustomDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 w-full">
+            <Label isRequired>Время дедлайна</Label>
+            <Input 
+              type="time"
+              variant="secondary"
+              value={customTime}
+              onChange={(e) => setCustomTime(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Кнопка создания */}
+      <Button 
+        className="w-full" 
+        size="lg" 
+        isDisabled={!canCreate || isPending}
+        onPress={handleCreateTask}
+      >
+        {({ isPending: isBtnPending }) => (
+          <>
+            {isPending && isBtnPending ? <Spinner color="current" size="sm" /> : null}
+            Создать задачу
+          </>
+        )}
+      </Button>
+    </div>
+  );
 }

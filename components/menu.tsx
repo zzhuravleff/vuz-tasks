@@ -27,7 +27,7 @@ export default function Menu() {
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`relative flex flex-col items-center justify-center px-4 py-2 rounded-xl transition active:scale-110 cursor-pointer
+              className={`relative flex flex-col items-center justify-center px-4 py-2 transition active:scale-110 cursor-pointer
                 ${active ? "text-accent" : "text-black/60 hover:text-black"}`}
             >
               {active && (
