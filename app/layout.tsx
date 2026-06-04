@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Menu from "@/components/menu";
-import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { PWAProvider } from "next-pwa-pack";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -22,17 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <PWAProvider>
     <html
       lang="ru"
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="flex flex-col items-center min-h-full bg-[#f5f5f5] font-inter">
         <Analytics />
-        <ServiceWorkerRegistrar />
         <main className="w-full p-4 mb-24">{children}</main>
         <Menu />
         <SpeedInsights />
       </body>
     </html>
+    </PWAProvider>
   );
 }
